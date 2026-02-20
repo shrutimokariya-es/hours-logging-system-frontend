@@ -1,0 +1,277 @@
+import React, { useState, useEffect } from 'react';
+import { clientService, Client } from '../services/clientService';
+import { developerService, Developer } from '../services/developerService';
+import hourLogService, { HourLogFormData } from '../services/hourLogService';
+import { toast } from 'react-toastify';
+
+const AddHourLog: React.FC = () => {
+  const [clients, setClients] = useState<Client[]>([]);
+  const [developers, setDevelopers] = useState<Developer[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(true);
+  
+  const [formData, setFormData] = useState<HourLogFormData>({
+    client: '',
+    developer: '',
+    date: new Date().toISOString().split('T')[0],
+    hours: 0,
+    description: ''
+  });
+  
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    fetchClientsAndDevelopers();
+  }, []);
+
+  const fetchClientsAndDevelopers = async () => {
+    setFetchLoading(true);
+    try {
+      const [clientsResponse, developersResponse] = await Promise.all([
+        clientService.getAll({ limit: 1000 }),
+        developerService.getAll({ limit: 1000 })
+      ]);
+      
+      setClients(clientsResponse.clients);
+      setDevelopers(developersResponse.developers);
+    } catch (error: any) {
+      toast.error('Failed to fetch clients and developers');
+      console.error('Error fetching data:', error);
+    } finally {
+      setFetchLoading(false);
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.client) {
+      newErrors.client = 'Please select a client';
+    }
+
+    if (!formData.developer) {
+      newErrors.developer = 'Please select a developer';
+    }
+
+    if (!formData.date) {
+      newErrors.date = 'Please select a date';
+    }
+
+    if (!formData.hours || formData.hours <= 0) {
+      newErrors.hours = 'Hours must be greater than 0';
+    }
+
+    if (formData.hours > 24) {
+      newErrors.hours = 'Hours cannot exceed 24';
+    }
+
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const isValid = validateForm();
+    if (!isValid) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await hourLogService.create(formData);
+      toast.success('Hour log added successfully');
+      
+      // Reset form
+      setFormData({
+        client: '',
+        developer: '',
+        date: new Date().toISOString().split('T')[0],
+        hours: 0,
+        description: ''
+      });
+      setErrors({});
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to add hour log');
+      console.error('Error adding hour log:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev: HourLogFormData) => ({ 
+      ...prev, 
+      [name]: name === 'hours' ? parseFloat(value) || 0 : value 
+    }));
+    
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  if (fetchLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="text-center">
+          <div className="text-gray-400 text-2xl mb-4">⏳</div>
+          <p className="text-gray-600">Loading clients and developers...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto py-8">
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Add Hour Log</h1>
+          <p className="text-gray-600 mt-2">Log hours worked for a specific client and developer</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Client Dropdown */}
+            <div>
+              <label htmlFor="client" className="block text-sm font-medium text-gray-700 mb-2">
+                Client *
+              </label>
+              <select
+                id="client"
+                name="client"
+                value={formData.client}
+                onChange={handleChange}
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                  errors.client ? 'border-red-300' : 'border-gray-300'
+                }`}
+              >
+                <option value="">Select a client</option>
+                {clients.map((client) => (
+                  <option key={client._id} value={client._id}>
+                    {client.name}
+                  </option>
+                ))}
+              </select>
+              {errors.client && (
+                <p className="mt-1 text-sm text-red-600">{errors.client}</p>
+              )}
+            </div>
+
+            {/* Developer Dropdown */}
+            <div>
+              <label htmlFor="developer" className="block text-sm font-medium text-gray-700 mb-2">
+                Developer *
+              </label>
+              <select
+                id="developer"
+                name="developer"
+                value={formData.developer}
+                onChange={handleChange}
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                  errors.developer ? 'border-red-300' : 'border-gray-300'
+                }`}
+              >
+                <option value="">Select a developer</option>
+                {developers.map((developer) => (
+                  <option key={developer._id} value={developer._id}>
+                    {developer.name}
+                  </option>
+                ))}
+              </select>
+              {errors.developer && (
+                <p className="mt-1 text-sm text-red-600">{errors.developer}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Date Picker */}
+            <div>
+              <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
+                Date *
+              </label>
+              <input
+                type="date"
+                id="date"
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                max={new Date().toISOString().split('T')[0]}
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                  errors.date ? 'border-red-300' : 'border-gray-300'
+                }`}
+              />
+              {errors.date && (
+                <p className="mt-1 text-sm text-red-600">{errors.date}</p>
+              )}
+            </div>
+
+            {/* Hours Input */}
+            <div>
+              <label htmlFor="hours" className="block text-sm font-medium text-gray-700 mb-2">
+                Hours *
+              </label>
+              <input
+                type="number"
+                id="hours"
+                name="hours"
+                value={formData.hours}
+                onChange={handleChange}
+                min="0.5"
+                max="24"
+                step="0.5"
+                placeholder="Enter hours worked"
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                  errors.hours ? 'border-red-300' : 'border-gray-300'
+                }`}
+              />
+              {errors.hours && (
+                <p className="mt-1 text-sm text-red-600">{errors.hours}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Description Textarea */}
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+              Description *
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows={4}
+              placeholder="Describe the work performed..."
+              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
+                errors.description ? 'border-red-300' : 'border-gray-300'
+              }`}
+            />
+            {errors.description && (
+              <p className="mt-1 text-sm text-red-600">{errors.description}</p>
+            )}
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex justify-center py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Adding...' : 'Add Hour Log'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default AddHourLog;
