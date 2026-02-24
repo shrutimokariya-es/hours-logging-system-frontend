@@ -33,9 +33,7 @@ export const authService = {
     return response.data.data;
   },
 
-  logout: async (): Promise<void> => {
-    await Axios.post('/auth/logout');
-  },
+ 
 
   getCurrentUser: async (): Promise<AuthResponse['user']> => {
     const response = await Axios.get('/auth/me');

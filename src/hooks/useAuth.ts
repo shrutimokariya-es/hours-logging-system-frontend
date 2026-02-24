@@ -42,7 +42,6 @@ export const useAuth = () => {
 
   const logoutUser = async () => {
     try {
-      await authService.logout();
     } catch (error) {
       console.log('Logout API error:', error);
     } finally {

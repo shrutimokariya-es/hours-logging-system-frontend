@@ -14,6 +14,7 @@ export interface Developer {
 export interface DeveloperFormData {
   name: string;
   email: string;
+  password: string;
   hourlyRate: number;
   status?: 'Active' | 'Inactive';
 }

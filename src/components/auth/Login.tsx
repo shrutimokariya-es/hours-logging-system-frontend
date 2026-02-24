@@ -30,9 +30,7 @@ const Login: React.FC = () => {
     return handleFormValidation(loginSchema, formData, setErrors);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = async () => {
     const isValid = await validateForm();
     if (!isValid) {
       return;
@@ -42,9 +40,9 @@ const Login: React.FC = () => {
     try {
       // Call authService directly since we're using axios interceptors
       const response = await authService.login(formData);
-    console.log("Login response:", response);
+      
       // Store credentials in Redux
-      await dispatch(setCredentials({
+       dispatch(setCredentials({
         token: response.token,
         accessToken: response.token,
         user:response.user
@@ -81,7 +79,7 @@ const Login: React.FC = () => {
           </div>
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form className="space-y-6">
             {/* Email Field */}
             <FormInput
               label="Email"
@@ -124,9 +122,10 @@ const Login: React.FC = () => {
 
             {/* Sign In Button */}
             <Button
-              type="submit"
+              type="button"
               variant="primary"
               size="lg"
+              onClick={handleSubmit}
               fullWidth
               disabled={isLoading}
               loading={isLoading}

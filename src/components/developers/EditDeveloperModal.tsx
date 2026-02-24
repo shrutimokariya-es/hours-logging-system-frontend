@@ -14,12 +14,13 @@ const EditDeveloperModal: React.FC<EditDeveloperModalProps> = ({
   onEditDeveloper,
   developer
 }) => {
-  const [formData, setFormData] = useState<DeveloperFormData>({
+  const [formData, setFormData] = useState<Partial<DeveloperFormData>>({
     name: '',
     email: '',
     hourlyRate: 0,
     status: 'Active'
   });
+  const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -30,17 +31,18 @@ const EditDeveloperModal: React.FC<EditDeveloperModalProps> = ({
         hourlyRate: developer.hourlyRate,
         status: developer.status
       });
+      setPassword('');
     }
   }, [developer]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) {
+    if (!formData.name?.trim()) {
       newErrors.name = 'Developer name is required';
     }
 
-    if (!formData.email.trim()) {
+    if (!formData.email?.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email';
@@ -48,6 +50,10 @@ const EditDeveloperModal: React.FC<EditDeveloperModalProps> = ({
 
     if (!formData.hourlyRate || formData.hourlyRate <= 0) {
       newErrors.hourlyRate = 'Hourly rate must be greater than 0';
+    }
+
+    if (password && password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters long';
     }
 
     setErrors(newErrors);
@@ -62,7 +68,12 @@ const EditDeveloperModal: React.FC<EditDeveloperModalProps> = ({
       return;
     }
 
-    onEditDeveloper(formData);
+    const submitData = { ...formData };
+    if (password) {
+      submitData.password = password;
+    }
+    
+    onEditDeveloper(submitData);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -75,6 +86,16 @@ const EditDeveloperModal: React.FC<EditDeveloperModalProps> = ({
     // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPassword(value);
+    
+    // Clear error for password field
+    if (errors.password) {
+      setErrors(prev => ({ ...prev, password: '' }));
     }
   };
 
@@ -139,6 +160,26 @@ const EditDeveloperModal: React.FC<EditDeveloperModalProps> = ({
                   />
                   {errors.email && (
                     <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    New Password (leave empty to keep current)
+                  </label>
+                  <input
+                    type="password"
+                    name="password"
+                    id="password"
+                    value={password}
+                    onChange={handlePasswordChange}
+                    className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm ${
+                      errors.password ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter new password (optional)"
+                  />
+                  {errors.password && (
+                    <p className="mt-1 text-sm text-red-600">{errors.password}</p>
                   )}
                 </div>
 

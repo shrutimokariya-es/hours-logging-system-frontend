@@ -11,6 +11,7 @@ const AddDeveloperModal: React.FC<AddDeveloperModalProps> = ({ isOpen, onClose, 
   const [formData, setFormData] = useState<DeveloperFormData>({
     name: '',
     email: '',
+    password: '',
     hourlyRate: 0,
     status: 'Active'
   });
@@ -27,6 +28,12 @@ const AddDeveloperModal: React.FC<AddDeveloperModalProps> = ({ isOpen, onClose, 
       newErrors.email = 'Email is required';
     } else if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(formData.email)) {
       newErrors.email = 'Please enter a valid email';
+    }
+
+    if (!formData.password.trim()) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters long';
     }
 
     if (!formData.hourlyRate || formData.hourlyRate <= 0) {
@@ -122,6 +129,26 @@ const AddDeveloperModal: React.FC<AddDeveloperModalProps> = ({ isOpen, onClose, 
                   />
                   {errors.email && (
                     <p className="mt-1 text-sm text-red-600">{errors.email}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    Password *
+                  </label>
+                  <input
+                    type="password"
+                    name="password"
+                    id="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm ${
+                      errors.password ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter password"
+                  />
+                  {errors.password && (
+                    <p className="mt-1 text-sm text-red-600">{errors.password}</p>
                   )}
                 </div>
 

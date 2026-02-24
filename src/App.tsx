@@ -9,9 +9,12 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './pages/Dashboard';
 import Clients from './pages/Clients';
+import ClientDetails from './pages/ClientDetails';
 import Developers from './pages/Developers';
+import Projects from './pages/Projects';
 import AddHourLog from './pages/AddHourLog';
 import Reports from './pages/Reports';
+import ToastContainer from './components/common/ToastContainer';
 import './index.css';
 
 // Setup axios interceptors
@@ -23,6 +26,7 @@ function App() {
         <>
           <AuthProvider>
             <div className="App">
+              <ToastContainer />
              
               <Routes>
                 <Route path="/login" element={<Login />} />
@@ -58,11 +62,31 @@ function App() {
                   }
                 />
                 <Route
+                  path="/clients/:id"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ClientDetails />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/developers"
                   element={
                     <ProtectedRoute>
                       <Layout>
                         <Developers />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/projects"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <Projects />
                       </Layout>
                     </ProtectedRoute>
                   }

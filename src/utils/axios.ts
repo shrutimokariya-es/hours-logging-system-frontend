@@ -56,21 +56,19 @@ export const setupAxios = (store: Store) => {
 
   Axios.interceptors.response.use(
     (res) => {
-      const redirectUrl = res?.data?.redirectUrl;
-
-      if (redirectUrl) {
-        navigateTo(redirectUrl);
-      }
-
-      const toast = res?.data?.toast;
-      if (toast) {
+      // Check if response has toast flag
+      const toastFlag = res?.data?.toastMessageFlag || res?.data?.toast;
+      const message = res?.data?.message;
+      
+      if (toastFlag && message) {
         store.dispatch(
           ToastShow({
-            message: res.data.message,
-            type: res.data.responseType,
+            message: message,
+            type: "success",
           })
         );
       }
+      
       return res;
     },
     (e) => {
@@ -83,19 +81,12 @@ export const setupAxios = (store: Store) => {
         return Promise.resolve({ cancelled: true });
       }
 
-      const redirectUrl = e?.response?.data?.redirectUrl;
-
-      // Token Expired ot Invalid
-      if (e?.response?.status === 401) {
-        console.log("response status :>> ", e?.response?.status);
-        store.dispatch(setLogoutData());
-        navigateTo(ROUTES.LOGIN);
-        return Promise.reject(e);
-      }
+      // const redirectUrl = e?.response?.data?.redirectUrl;
 
       // Network issues — here there is no need to logout the user.
       if (e.code === "ERR_NETWORK") {
         console.warn("Network error (not logging out):", e.message);
+        navigateTo(ROUTES.LOGIN);
         store.dispatch(
           ToastShow({
             message:
@@ -106,20 +97,18 @@ export const setupAxios = (store: Store) => {
         return Promise.reject(e);
       }
 
-      if (redirectUrl) {
-        navigateTo(redirectUrl);
-      }
       const toast = e?.response?.data?.toast;
       const message = e?.response?.data?.message;
-
-      if (toast) {
+      
+      if (message) {
         store.dispatch(
           ToastShow({
             message: message,
-            type: e?.response?.data?.responseType || "",
+            type: "error",
           })
         );
       }
+      
       throw e;
     }
   );

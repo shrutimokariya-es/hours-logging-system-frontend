@@ -11,7 +11,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
-
   const handleLogout = async () => {
     await logout();
     navigate('/login');
@@ -21,16 +20,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', roles: [0, 1, 2] }, // 0: BA, 1: Client, 2: Developer
-    { path: '/clients', label: 'Clients', roles: [0, 2] }, // 0: BA, 2: Developer
+    { path: '/clients', label: 'Clients', roles: [0] }, // 0: BA, 2: Developer
     { path: '/developers', label: 'Developers', roles: [0, 1] }, // 0: BA, 1: Client
-    // { path: '/projects', label: 'Projects', roles: [0, 1, 2] }, // All roles
+    { path: '/projects', label: 'Projects', roles: [0, 1, 2] }, // All roles
     { path: '/add-hour-log', label: 'Add Hour Log', roles: [0, 1, 2] }, // All roles
     { path: '/reports', label: 'Reports', roles: [0, 1, 2] }, // All roles
     // { path: '/settings', label: 'Settings', roles: [0, 1, 2] }, // All roles
   ];
 
   const filteredMenuItems = menuItems.filter((item) => {
-    const shouldShow = user?.role === 0 && item.roles.includes(user.role);
+    const shouldShow = user && item.roles.includes(user.role);
     return shouldShow;
   });
   return (
@@ -54,7 +53,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <div className="flex items-center space-x-3">
                 <span className="text-sm font-medium">Welcome, {user?.name}</span>
                 <span className="text-xs bg-green-600 px-2 py-1 rounded-full font-semibold">
-                  {user?.role ? getRoleName(user.role) : 'Guest'}
+                  {user?.role !== undefined ? getRoleName(user.role) : 'Guest'}
                 </span>
               </div>
               <button

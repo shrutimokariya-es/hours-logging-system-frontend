@@ -19,3 +19,20 @@ export type { LabelProps } from './Label';
 export { default as FormField } from './FormField';
 export type { FormFieldProps } from './FormField';
 export { FormInput, FormSelect, FormTextArea, FormCheckbox } from './FormField';
+
+export { default as LoadingSpinner } from './LoadingSpinner';
+
+export { default as Card } from './Card';
+export type { CardProps } from './Card';
+
+export { default as PageHeader } from './PageHeader';
+export type { PageHeaderProps } from './PageHeader';
+
+export { default as StatsCard } from './StatsCard';
+export type { StatsCardProps } from './StatsCard';
+
+export { default as DataTable } from './DataTable';
+export type { DataTableProps, Column } from './DataTable';
+
+export { default as TabNavigation } from './TabNavigation';
+export type { TabNavigationProps, Tab } from './TabNavigation';

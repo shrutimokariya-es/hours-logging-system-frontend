@@ -13,6 +13,7 @@ export const ROLE_NUMBERS = {
 export type Role = 0 | 1 | 2;
 
 export const getRoleName = (role: number): string => {
+  console.log("role",role)
   return ROLE_NAMES[role as Role] || 'Unknown';
 };
 

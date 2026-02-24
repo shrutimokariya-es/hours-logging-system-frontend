@@ -13,6 +13,7 @@ export interface Client {
 export interface ClientFormData {
   name: string;
   companyEmail: string;
+  password: string;
   billingType: 'Hourly' | 'Fixed';
   status?: 'Active' | 'Inactive';
 }

@@ -14,12 +14,13 @@ const EditClientModal: React.FC<EditClientModalProps> = ({
   onEditClient,
   client
 }) => {
-  const [formData, setFormData] = useState<ClientFormData>({
+  const [formData, setFormData] = useState<Partial<ClientFormData>>({
     name: '',
     companyEmail: '',
     billingType: 'Hourly',
     status: 'Active'
   });
+  const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -30,17 +31,18 @@ const EditClientModal: React.FC<EditClientModalProps> = ({
         billingType: client.billingType,
         status: client.status
       });
+      setPassword('');
     }
   }, [client]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) {
+    if (!formData.name?.trim()) {
       newErrors.name = 'Client name is required';
     }
 
-    if (!formData.companyEmail.trim()) {
+    if (!formData.companyEmail?.trim()) {
       newErrors.companyEmail = 'Company email is required';
     } else if (!/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(formData.companyEmail)) {
       newErrors.companyEmail = 'Please enter a valid email';
@@ -48,6 +50,10 @@ const EditClientModal: React.FC<EditClientModalProps> = ({
 
     if (!formData.billingType) {
       newErrors.billingType = 'Billing type is required';
+    }
+
+    if (password && password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters long';
     }
 
     setErrors(newErrors);
@@ -62,7 +68,12 @@ const EditClientModal: React.FC<EditClientModalProps> = ({
       return;
     }
 
-    onEditClient(formData);
+    const submitData = { ...formData };
+    if (password) {
+      submitData.password = password;
+    }
+    
+    onEditClient(submitData);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -72,6 +83,16 @@ const EditClientModal: React.FC<EditClientModalProps> = ({
     // Clear error for this field
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPassword(value);
+    
+    // Clear error for password field
+    if (errors.password) {
+      setErrors(prev => ({ ...prev, password: '' }));
     }
   };
 
@@ -136,6 +157,26 @@ const EditClientModal: React.FC<EditClientModalProps> = ({
                   />
                   {errors.companyEmail && (
                     <p className="mt-1 text-sm text-red-600">{errors.companyEmail}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                    New Password (leave empty to keep current)
+                  </label>
+                  <input
+                    type="password"
+                    name="password"
+                    id="password"
+                    value={password}
+                    onChange={handlePasswordChange}
+                    className={`mt-1 block w-full border rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm ${
+                      errors.password ? 'border-red-300' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter new password (optional)"
+                  />
+                  {errors.password && (
+                    <p className="mt-1 text-sm text-red-600">{errors.password}</p>
                   )}
                 </div>
 

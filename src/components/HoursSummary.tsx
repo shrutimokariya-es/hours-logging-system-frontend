@@ -56,6 +56,7 @@ const HoursSummary: React.FC<HoursSummaryProps> = () => {
       }
       
       const summary = await reportService.getHoursSummary(params);
+      console.log("summary",summary)
       setSummary(summary);
       setError(null);
     } catch (err: any) {

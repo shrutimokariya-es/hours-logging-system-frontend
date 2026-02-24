@@ -4,6 +4,7 @@ export interface HourLog {
   _id: string;
   client: string | Client;
   developer: string | Developer;
+  project: string | Project;
   date: string;
   hours: number;
   description: string;
@@ -25,13 +26,31 @@ export interface Developer {
   name: string;
   email: string;
   hourlyRate: number;
-  role: string;
   status: string;
+}
+
+export interface Project {
+  _id: string;
+  name: string;
+  description?: string;
+  client: string | Client;
+  developers: string[] | Developer[];
+  status: string;
+  startDate?: string;
+  endDate?: string;
+  estimatedHours?: number;
+  actualHours?: number;
+  hourlyRate?: number;
+  billingType: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface HourLogFormData {
   client: string;
   developer: string;
+  project: string;
   date: string;
   hours: number;
   description: string;

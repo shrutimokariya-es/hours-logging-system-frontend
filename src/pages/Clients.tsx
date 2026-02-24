@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { RootState } from '../store/store';
 import AddClientModal from '../components/clients/AddClientModal';
 import EditClientModal from '../components/clients/EditClientModal';
@@ -8,7 +9,7 @@ import { Button } from '../components/common';
 import { toast } from 'react-toastify';
 
 const Clients: React.FC = () => {
-  const { user } = useSelector((state: RootState) => state.auth);
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'Active' | 'Inactive'>('all');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -23,7 +24,7 @@ const Clients: React.FC = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  const fetchClients = async () => {
+  const fetchClients = useCallback(async () => {
     setLoading(true);
     try {
       const params: any = {
@@ -48,11 +49,11 @@ const Clients: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.page, pagination.limit, filterStatus, searchTerm]);
 
   useEffect(() => {
     fetchClients();
-  }, [pagination.page, filterStatus]);
+  }, [fetchClients]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -64,7 +65,7 @@ const Clients: React.FC = () => {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm]);
+  }, [searchTerm, fetchClients]);
 
   const handleAddClient = async (clientData: ClientFormData) => {
     try {
@@ -207,7 +208,7 @@ const Clients: React.FC = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredClients.map((client) => (
-                <tr key={client._id} className="hover:bg-gray-50">
+                <tr key={client._id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/clients/${client._id}`)}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{client.name}</div>
                   </td>
@@ -237,13 +238,19 @@ const Clients: React.FC = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
-                      onClick={() => openEditModal(client)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEditModal(client);
+                      }}
                       className="text-indigo-600 hover:text-indigo-900 mr-3"
                     >
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDeleteClient(client)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteClient(client);
+                      }}
                       className="text-red-600 hover:text-red-900"
                     >
                       Delete
