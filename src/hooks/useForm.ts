@@ -29,8 +29,8 @@ export const useForm = <T extends Record<string, any>>({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const validateForm = useCallback(async (): Promise<boolean> => {
+
     if (!validationSchema) return true;
 
     try {
@@ -56,7 +56,15 @@ export const useForm = <T extends Record<string, any>>({
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     
-    const fieldValue = type === 'checkbox' ? (e.target as HTMLInputElement).checked : value;
+    let fieldValue: any;
+    if (type === 'checkbox') {
+      fieldValue = (e.target as HTMLInputElement).checked;
+    } else if (type === 'number') {
+      // Convert to number if it's a valid number, otherwise keep as string for validation
+      fieldValue = value === '' ? '' : Number(value);
+    } else {
+      fieldValue = value;
+    }
     
     setValues(prev => ({ ...prev, [name]: fieldValue }));
     
@@ -121,6 +129,7 @@ export const useForm = <T extends Record<string, any>>({
     setFieldValue,
     setErrors,
     resetForm,
-    validateForm
+    validateForm,
+  
   };
 };

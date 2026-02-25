@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { reportService } from '../services/reportService';
 
-interface HoursSummary {
+interface HoursSummaryI {
   totalHours: number;
   totalLogs: number;
   uniqueClients: number;
@@ -24,27 +24,58 @@ interface HoursSummaryProps {
 }
 
 const HoursSummary: React.FC<HoursSummaryProps> = () => {
-  const [summary, setSummary] = useState<HoursSummary | null>(null);
+  const [summary, setSummary] = useState<HoursSummaryI | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<string>('this-month');
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
 
-  useEffect(() => {
-    fetchHoursSummary();
-  }, [dateRange, customStartDate, customEndDate]);
+  // useEffect(() => {
+  //   fetchHoursSummary();
+  // }, [dateRange, customStartDate, customEndDate]);
 
-  const fetchHoursSummary = async () => {
+  // const fetchHoursSummary = async () => {
+  //   try {
+  //     setLoading(true);
+  //     let params: any = {};
+      
+  //     if (dateRange === 'custom' && customStartDate && customEndDate) {
+  //       params.startDate = customStartDate;
+  //       params.endDate = customEndDate;
+  //     } else {
+  //       // Map frontend date range to backend period
+  //       const periodMap: Record<string, string> = {
+  //         'this-week': 'weekly',
+  //         'this-month': 'this-month',
+  //         'last-month': 'last-month',
+  //         'this-quarter': 'this-quarter',
+  //         'this-year': 'this-year'
+  //       };
+  //       params.period = periodMap[dateRange] || 'monthly';
+  //     }
+      
+  //     const summary = await reportService.getHoursSummary(params);
+  //     console.log("summary",summary)
+  //     setSummary(summary);
+  //     setError(null);
+  //   } catch (err: any) {
+  //     setError(err.message || 'Failed to fetch hours summary');
+  //     toast.error('Failed to fetch hours summary');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+  const fetchHoursSummary = useCallback(async () => {
     try {
       setLoading(true);
       let params: any = {};
-      
+
       if (dateRange === 'custom' && customStartDate && customEndDate) {
         params.startDate = customStartDate;
         params.endDate = customEndDate;
       } else {
-        // Map frontend date range to backend period
         const periodMap: Record<string, string> = {
           'this-week': 'weekly',
           'this-month': 'this-month',
@@ -52,11 +83,12 @@ const HoursSummary: React.FC<HoursSummaryProps> = () => {
           'this-quarter': 'this-quarter',
           'this-year': 'this-year'
         };
+
         params.period = periodMap[dateRange] || 'monthly';
       }
-      
+
       const summary = await reportService.getHoursSummary(params);
-      console.log("summary",summary)
+      console.log("summary", summary);
       setSummary(summary);
       setError(null);
     } catch (err: any) {
@@ -65,7 +97,11 @@ const HoursSummary: React.FC<HoursSummaryProps> = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateRange, customStartDate, customEndDate]);
+
+  useEffect(() => {
+    fetchHoursSummary();
+  }, [fetchHoursSummary]);
 
   if (loading) {
     return (

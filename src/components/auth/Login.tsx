@@ -6,7 +6,6 @@ import { setCredentials } from '../../store/slices/authSlice';
 import { loginSchema } from '../../validation/authValidation';
 import { authService } from '../../services/authService';
 import { FormInput, Button } from '../common';
-import { toast } from 'react-toastify';
 import { useForm } from '../../hooks/useForm';
 // import { useForm } from "react-hook-form";
 
@@ -43,8 +42,7 @@ const Login: React.FC = () => {
       } catch (error: any) {
         console.error('Login error:', error);
         const errorMessage = error.response?.data?.message || error.message || 'Login failed. Please try again.';
-        toast.error(errorMessage);
-        
+       
         if (error.response?.data?.message) {
           setErrors({ general: errorMessage });
         }

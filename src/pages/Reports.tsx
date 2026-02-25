@@ -9,7 +9,7 @@ import { PageHeader, TabNavigation } from '../components/common';
 const Reports: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const [activeView, setActiveView] = useState<'summary' | 'clients' | 'developers'>('summary');
-  const [loading, setLoading] = useState();
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const tabs = [
@@ -18,9 +18,24 @@ const Reports: React.FC = () => {
     ...(user?.role !== 2 ? [{ key: 'developers', label: 'Developer Hours', description: 'Developer performance metrics' }] : [])
   ];
 
-  // Fetch reports on component mount (not needed anymore but keeping for structure)
+  // Initialize reports data
   useEffect(() => {
-    // No need to fetch reports since we removed reports tab
+    const initializeReports = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Simulate initial data loading or validation
+        // Individual components will handle their own data fetching
+        await new Promise(resolve => setTimeout(resolve, 500)); // Minimal loading state
+      } catch (err: any) {
+        setError(err.message || 'Failed to initialize reports');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeReports();
   }, []);
 
   if (loading) {

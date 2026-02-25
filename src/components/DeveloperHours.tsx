@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { reportService } from '../services/reportService';
 
@@ -26,40 +26,73 @@ const DeveloperHours: React.FC<DeveloperHoursProps> = () => {
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
 
-  useEffect(() => {
-    fetchDeveloperHours();
-  }, [dateRange, customStartDate, customEndDate]);
+  // useEffect(() => {
+  //   fetchDeveloperHours();
+  // }, [dateRange, customStartDate, customEndDate]);
 
-  const fetchDeveloperHours = async () => {
-    try {
-      setLoading(true);
-      let params: any = {};
+  // const fetchDeveloperHours = async () => {
+  //   try {
+  //     setLoading(true);
+  //     let params: any = {};
       
-      if (dateRange === 'custom' && customStartDate && customEndDate) {
-        params.startDate = customStartDate;
-        params.endDate = customEndDate;
-      } else {
-        // Map frontend date range to backend period
-        const periodMap: Record<string, string> = {
-          'this-week': 'weekly',
-          'this-month': 'this-month',
-          'last-month': 'last-month',
-          'this-quarter': 'this-quarter',
-          'this-year': 'this-year'
-        };
-        params.period = periodMap[dateRange] || 'monthly';
-      }
+  //     if (dateRange === 'custom' && customStartDate && customEndDate) {
+  //       params.startDate = customStartDate;
+  //       params.endDate = customEndDate;
+  //     } else {
+  //       // Map frontend date range to backend period
+  //       const periodMap: Record<string, string> = {
+  //         'this-week': 'weekly',
+  //         'this-month': 'this-month',
+  //         'last-month': 'last-month',
+  //         'this-quarter': 'this-quarter',
+  //         'this-year': 'this-year'
+  //       };
+  //       params.period = periodMap[dateRange] || 'monthly';
+  //     }
       
-      const developerHours = await reportService.getDeveloperHours(params);
-      setDeveloperData(developerHours);
-      setError(null);
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch developer hours');
-      toast.error('Failed to fetch developer hours');
-    } finally {
-      setLoading(false);
+  //     const developerHours = await reportService.getDeveloperHours(params);
+  //     setDeveloperData(developerHours);
+  //     setError(null);
+  //   } catch (err: any) {
+  //     setError(err.message || 'Failed to fetch developer hours');
+  //     toast.error('Failed to fetch developer hours');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+  const fetchDeveloperHours = useCallback(async () => {
+  try {
+    setLoading(true);
+    let params: any = {};
+
+    if (dateRange === 'custom' && customStartDate && customEndDate) {
+      params.startDate = customStartDate;
+      params.endDate = customEndDate;
+    } else {
+      const periodMap: Record<string, string> = {
+        'this-week': 'weekly',
+        'this-month': 'this-month',
+        'last-month': 'last-month',
+        'this-quarter': 'this-quarter',
+        'this-year': 'this-year'
+      };
+      params.period = periodMap[dateRange] || 'monthly';
     }
-  };
+
+    const developerHours = await reportService.getDeveloperHours(params);
+    setDeveloperData(developerHours);
+    setError(null);
+  } catch (err: any) {
+    setError(err.message || 'Failed to fetch developer hours');
+    toast.error('Failed to fetch developer hours');
+  } finally {
+    setLoading(false);
+  }
+}, [dateRange, customStartDate, customEndDate]);
+
+useEffect(() => {
+  fetchDeveloperHours();
+}, [fetchDeveloperHours]);
 
   if (loading) {
     return (

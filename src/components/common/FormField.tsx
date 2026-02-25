@@ -1,10 +1,9 @@
 import React from 'react';
 import Label from './Label';
-import { LabelProps } from './Label';
 import Input from './Input';
 import { InputProps } from './Input';
 import Select from './Select';
-import { SelectProps, SelectOption } from './Select';
+import { SelectProps } from './Select';
 import TextArea from './TextArea';
 import { TextAreaProps } from './TextArea';
 import Checkbox from './Checkbox';

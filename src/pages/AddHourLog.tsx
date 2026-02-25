@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import { Axios } from '../utils/axios';
 import { useForm } from '../hooks/useForm';
 import { FormSelect, FormInput, Button } from '../components/common';
+import { hourLogSchema, extractHourLogValidationErrors } from '../validation/authValidation';
 
 interface Project {
   _id: string;
@@ -44,56 +45,20 @@ const AddHourLog: React.FC = () => {
       developer: user?.role === 2 ? user._id : '',
       project: '',
       date: new Date().toISOString().split('T')[0],
-      hours: 0,
+      hours: '' as any,
       description: ''
     },
-    validationSchema: {
-      validate: (formData: HourLogFormData) => {
-        const newErrors: Record<string, string> = {};
-
-        if (!formData.project) {
-          newErrors.project = 'Please select a project';
-        }
-
-        // Client validation - only required if no project is selected
-        if (!formData.project && !formData.client) {
-          newErrors.client = 'Please select a client';
-        }
-
-        if (!formData.developer) {
-          newErrors.developer = 'Please select a developer';
-        }
-
-        if (!formData.date) {
-          newErrors.date = 'Please select a date';
-        }
-
-        if (!formData.hours || formData.hours <= 0) {
-          newErrors.hours = 'Hours must be greater than 0';
-        }
-
-        if (formData.hours > 24) {
-          newErrors.hours = 'Hours cannot exceed 24';
-        }
-
-        if (!formData.description.trim()) {
-          newErrors.description = 'Description is required';
-        }
-
-        return newErrors;
-      }
-    },
+    validationSchema: hourLogSchema,
     onSubmit: async (formData) => {
+      console.log("???",formData)
       try {
         await hourLogService.create(formData);
-        toast.success('Hour log added successfully');
         
         // Reset form
         resetForm();
         setFieldValue('developer', user?.role === 2 ? user._id : '');
         setFieldValue('date', new Date().toISOString().split('T')[0]);
       } catch (error: any) {
-        toast.error(error.response?.data?.message || 'Failed to add hour log');
         console.error('Error adding hour log:', error);
         throw error; // Re-throw to let useForm handle isSubmitting state
       }

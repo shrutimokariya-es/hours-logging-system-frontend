@@ -64,3 +64,47 @@ export const extractAuthValidationErrors = (error: yup.ValidationError): Validat
   
   return errors;
 };
+
+// Hour log validation schema
+export const hourLogSchema = yup.object().shape({
+  client: yup.string().when('project', {
+    is: (project: string) => !project || project === '',
+    then: (schema) => schema.required('Client is required when no project is selected'),
+    otherwise: (schema) => schema.notRequired()
+  }),
+  project: yup.string().when('client', {
+    is: (client: string) => !client || client === '',
+    then: (schema) => schema.required('Project is required when no client is selected'),
+    otherwise: (schema) => schema.notRequired()
+  }),
+  developer: yup.string().required('Developer is required'),
+  date: yup.string().required('Date is required'),
+  hours: yup
+    .number()
+    .typeError('Hours must be a number')
+    .required('Hours is required')
+    .positive('Hours must be greater than 0')
+    .min(0.1, 'Hours must be at least 0.1')
+    .max(24, 'Hours cannot exceed 24'),
+  description: yup
+    .string()
+    .required('Description is required')
+    .min(3, 'Description must be at least 3 characters')
+    .max(500, 'Description must be less than 500 characters')
+    .test('not-empty', 'Description cannot be just whitespace', (value) => {
+      return value ? value.trim().length > 0 : false;
+    })
+}, [['client', 'project']]);
+
+// Helper function to extract hour log validation errors
+export const extractHourLogValidationErrors = (error: yup.ValidationError): ValidationError => {
+  const errors: ValidationError = {};
+  
+  error.inner.forEach((err) => {
+    if (err.path) {
+      errors[err.path] = err.message;
+    }
+  });
+  
+  return errors;
+};

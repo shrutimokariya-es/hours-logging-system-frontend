@@ -3,10 +3,9 @@ import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { setCredentials } from '../../store/slices/authSlice';
 import { authService } from '../../services/authService';
-import { registerSchema, RegisterFormData } from '../../validation';
+import { registerSchema } from '../../validation';
 import { Button, FormInput } from '../common';
 import { useForm } from '../../hooks/useForm';
-import { toast } from 'react-toastify';
 
 const Register: React.FC = () => {
   const dispatch = useDispatch();
@@ -35,12 +34,9 @@ const Register: React.FC = () => {
           accessToken: response.token
         }));
         
-        toast.success('Registration successful!');
         navigate('/dashboard');
       } catch (error: any) {
         console.error('Registration error:', error);
-        const errorMessage = error.response?.data?.message || error.message || 'Registration failed. Please try again.';
-        toast.error(errorMessage);
         throw error; // Re-throw to let useForm handle isSubmitting state
       }
     }

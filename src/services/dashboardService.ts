@@ -22,8 +22,13 @@ export interface DashboardSummary {
 }
 
 const dashboardService = {
-  getSummary: async (): Promise<DashboardSummary> => {
-    const response = await Axios.get('/dashboard/summary');
+  getSummary: async (startDate?: string, endDate?: string): Promise<DashboardSummary> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const url = `/dashboard/summary${params.toString() ? `?${params.toString()}` : ''}`;
+    const response = await Axios.get(url);
     console.log("Dashboard response:", response.data);
     return response.data.data;
   }

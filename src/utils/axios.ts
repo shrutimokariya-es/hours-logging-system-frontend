@@ -3,7 +3,6 @@ import axios, { AxiosRequestHeaders, InternalAxiosRequestConfig } from "axios";
 
 //========================== Redux ==========================//
 import { Store } from "@reduxjs/toolkit";
-import { setLogoutData } from "../store/slices/authSlice";
 import { ToastShow } from "../store/slices/toastSlice";
 
 //========================== Others ==========================//
@@ -97,7 +96,6 @@ export const setupAxios = (store: Store) => {
         return Promise.reject(e);
       }
 
-      const toast = e?.response?.data?.toast;
       const message = e?.response?.data?.message;
       
       if (message) {

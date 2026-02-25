@@ -1,5 +1,4 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { store } from './store/store';
 import { setupAxios } from './utils/axios';
 import ProtectedRoute from './components/common/ProtectedRoute';
@@ -12,7 +11,6 @@ import Clients from './pages/Clients';
 import ClientDetails from './pages/ClientDetails';
 import Developers from './pages/Developers';
 import Projects from './pages/Projects';
-import AddHourLog from './pages/AddHourLog';
 import Reports from './pages/Reports';
 import ToastContainer from './components/common/ToastContainer';
 import './index.css';
@@ -87,16 +85,6 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <Projects />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/add-hour-log"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <AddHourLog />
                       </Layout>
                     </ProtectedRoute>
                   }

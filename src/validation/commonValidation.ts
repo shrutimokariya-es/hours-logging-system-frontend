@@ -24,7 +24,7 @@ export const nameValidation = yup
 
 export const phoneValidation = yup
   .string()
-  .matches(/^[+]?[\d\s\-\(\)]+$/, 'Phone number is invalid')
+  .matches(/^[+]?[\d\s\-()]+$/, 'Phone number is invalid')
   .min(10, 'Phone number must be at least 10 digits');
 
 export const requiredStringValidation = (fieldName: string, minLength = 1) =>

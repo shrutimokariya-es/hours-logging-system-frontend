@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getRoleName } from '../../utils/roleUtils';
+import AddHourLogModal from '../common/AddHourLogModal';
+import { Plus } from 'lucide-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -11,6 +13,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const [isAddHourLogModalOpen, setIsAddHourLogModalOpen] = useState(false);
   const handleLogout = async () => {
     await logout();
     navigate('/login');
@@ -20,12 +23,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', roles: [0, 1, 2] }, // 0: BA, 1: Client, 2: Developer
-    { path: '/clients', label: 'Clients', roles: [0] }, // 0: BA, 2: Developer
+    { path: '/clients', label: 'Clients', roles: [0] }, // 0: BA
     { path: '/developers', label: 'Developers', roles: [0, 1] }, // 0: BA, 1: Client
     { path: '/projects', label: 'Projects', roles: [0, 1, 2] }, // All roles
-    { path: '/add-hour-log', label: 'Add Hour Log', roles: [0, 1, 2] }, // All roles
     { path: '/reports', label: 'Reports', roles: [0, 1, 2] }, // All roles
-    // { path: '/settings', label: 'Settings', roles: [0, 1, 2] }, // All roles
   ];
 
   const filteredMenuItems = menuItems.filter((item) => {
@@ -50,6 +51,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setIsAddHourLogModalOpen(true)}
+                className="flex items-center space-x-2 bg-white text-green-700 hover:bg-green-50 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 shadow-md"
+              >
+                <Plus size={18} />
+                <span>Add Hour Log</span>
+              </button>
               <div className="flex items-center space-x-3">
                 <span className="text-sm font-medium">Welcome, {user?.name}</span>
                 <span className="text-xs bg-green-600 px-2 py-1 rounded-full font-semibold">
@@ -90,10 +98,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     {item.path === '/clients' && '👥'}
                     {item.path === '/developers' && '👨‍💻'}
                     {item.path === '/projects' && '📁'}
-                    {item.path === '/add-hour-log' && '⏰'}
-                    {item.path === '/hours' && '⏰'}
                     {item.path === '/reports' && '📈'}
-                    {item.path === '/settings' && '⚙️'}
                   </span>
                   {item.label}
                 </div>
@@ -107,6 +112,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {children}
         </div>
       </div>
+
+      {/* Add Hour Log Modal */}
+      <AddHourLogModal 
+        isOpen={isAddHourLogModalOpen} 
+        onClose={() => setIsAddHourLogModalOpen(false)} 
+      />
     </div>
   );
 };

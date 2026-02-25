@@ -36,3 +36,5 @@ export type { DataTableProps, Column } from './DataTable';
 
 export { default as TabNavigation } from './TabNavigation';
 export type { TabNavigationProps, Tab } from './TabNavigation';
+
+export { default as AddHourLogModal } from './AddHourLogModal';

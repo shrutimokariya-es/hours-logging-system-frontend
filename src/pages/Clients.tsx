@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { RootState } from '../store/store';
 import AddClientModal from '../components/clients/AddClientModal';
 import EditClientModal from '../components/clients/EditClientModal';
 import { clientService, Client, ClientFormData, ClientListResponse } from '../services/clientService';
 import { Button } from '../components/common';
-import { toast } from 'react-toastify';
 
 const Clients: React.FC = () => {
   const navigate = useNavigate();
@@ -44,7 +41,6 @@ const Clients: React.FC = () => {
       setClients(response.clients);
       setPagination(response.pagination);
     } catch (error: any) {
-      toast.error('Failed to fetch clients');
       console.error('Error fetching clients:', error);
     } finally {
       setLoading(false);
@@ -65,16 +61,14 @@ const Clients: React.FC = () => {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, fetchClients]);
+  }, [searchTerm, fetchClients, pagination.page]);
 
   const handleAddClient = async (clientData: ClientFormData) => {
     try {
       await clientService.create(clientData);
-      toast.success('Client created successfully');
       setIsAddModalOpen(false);
       fetchClients();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to create client');
       console.error('Error creating client:', error);
     }
   };
@@ -84,12 +78,10 @@ const Clients: React.FC = () => {
     
     try {
       await clientService.update(selectedClient._id, clientData);
-      toast.success('Client updated successfully');
       setIsEditModalOpen(false);
       setSelectedClient(null);
       fetchClients();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to update client');
       console.error('Error updating client:', error);
     }
   };
@@ -101,10 +93,8 @@ const Clients: React.FC = () => {
 
     try {
       await clientService.delete(client._id);
-      toast.success('Client deleted successfully');
       fetchClients();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to delete client');
       console.error('Error deleting client:', error);
     }
   };

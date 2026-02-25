@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect, useCallback } from 'react';
 import { reportService } from '../services/reportService';
 
 interface ClientData {
@@ -26,11 +25,7 @@ const ClientHours: React.FC<ClientHoursProps> = () => {
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
 
-  useEffect(() => {
-    fetchClientHours();
-  }, [dateRange, customStartDate, customEndDate]);
-
-  const fetchClientHours = async () => {
+  const fetchClientHours = useCallback(async () => {
     try {
       setLoading(true);
       let params: any = {};
@@ -55,11 +50,14 @@ const ClientHours: React.FC<ClientHoursProps> = () => {
       setError(null);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch client hours');
-      toast.error('Failed to fetch client hours');
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateRange, customStartDate, customEndDate]);
+
+  useEffect(() => {
+    fetchClientHours();
+  }, [fetchClientHours]);
 
   if (loading) {
     return (

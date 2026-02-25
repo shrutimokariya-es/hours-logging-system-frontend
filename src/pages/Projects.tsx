@@ -287,7 +287,7 @@ const Projects: React.FC = () => {
       </div>
     );
   }
-
+console.log("projects",projects)
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

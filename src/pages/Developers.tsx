@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import AddDeveloperModal from '../components/developers/AddDeveloperModal';
 import EditDeveloperModal from '../components/developers/EditDeveloperModal';
 import { developerService, Developer, DeveloperFormData, DeveloperListResponse } from '../services/developerService';
@@ -20,7 +20,7 @@ const Developers: React.FC = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  const fetchDevelopers = async () => {
+  const fetchDevelopers = useCallback(async () => {
     setLoading(true);
     try {
       const params: any = {
@@ -45,7 +45,7 @@ const Developers: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.page, pagination.limit, filterStatus, searchTerm]);
 
   // useEffect(() => {
   //   fetchDevelopers();
@@ -61,7 +61,7 @@ const Developers: React.FC = () => {
     }, 500);
 
     return () => clearTimeout(timeoutId);
-  }, [ searchTerm, pagination.page]);
+  }, [searchTerm, pagination.page, fetchDevelopers]);
 
   const handleAddDeveloper = async (developerData: DeveloperFormData) => {
     try {
