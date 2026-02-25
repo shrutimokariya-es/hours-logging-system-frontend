@@ -116,6 +116,17 @@ const hourLogService = {
   }): Promise<HourLogListResponse> => {
     const response = await Axios.get(`/hour-logs/client/${clientId}`, { params });
     return response.data;
+  },
+
+  getByProject: async (projectId: string, params?: {
+    page?: number;
+    limit?: number;
+    startDate?: string;
+    endDate?: string;
+  }): Promise<HourLogListResponse> => {
+    const response = await Axios.get(`/hour-logs/project/${projectId}`, { params });
+    console.log("resposne dlvndfnvlkn", response.data)
+    return response.data.data;
   }
 };
 

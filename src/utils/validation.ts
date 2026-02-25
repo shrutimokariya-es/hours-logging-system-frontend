@@ -25,8 +25,19 @@ export const handleFormValidation = async (
     setErrors({});
     return true;
   } catch (error: any) {
-    const validationErrors = convertValidationErrors(error.inner ? error : { message: error.message });
-    setErrors(validationErrors);
+    // Handle Yup validation errors
+    if (error.inner) {
+      const validationErrors: Record<string, string> = {};
+      error.inner.forEach((err: any) => {
+        if (err.path) {
+          validationErrors[err.path] = err.message;
+        }
+      });
+      setErrors(validationErrors);
+    } else {
+      // Handle other types of errors
+      setErrors({ general: error.message || 'Validation failed' });
+    }
     return false;
   }
 };

@@ -88,7 +88,7 @@ const ClientHours: React.FC<ClientHoursProps> = () => {
       </div>
     );
   }
-
+console.log("??",clientData)
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-4">
@@ -191,7 +191,15 @@ const ClientHours: React.FC<ClientHoursProps> = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
-                        {client.developers.slice(0, 2).join(', ')}
+                        {Array.from(new Set(
+                          client.developers.slice(0, 2).map((dev: any) => {
+                            // Handle different possible data structures
+                            if (typeof dev === 'string') return dev;
+                            if (typeof dev === 'object' && dev.name) return dev.name;
+                            if (typeof dev === 'object' && dev.developer && dev.developer.name) return dev.developer.name;
+                            return 'Unknown';
+                          })
+                        )).join(', ')}
                         {client.developers.length > 2 && ` +${client.developers.length - 2} more`}
                       </div>
                     </td>

@@ -147,13 +147,13 @@ const Dashboard: React.FC = () => {
         title="Dashboard" 
         subtitle={`Welcome back, ${user?.name}! Here's your overview.`}
       >
-        <div className="flex items-center space-x-4">
+        {/* <div className="flex items-center space-x-4">
           <img 
             src="/ba_logo.svg" 
             alt="HoursLog Logo" 
             className="h-12 w-auto"
           />
-        </div>
+        </div> */}
       </PageHeader>
 
       {/* Stats Grid */}

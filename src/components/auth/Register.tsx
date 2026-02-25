@@ -1,71 +1,50 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { setCredentials } from '../../store/slices/authSlice';
 import { authService } from '../../services/authService';
-import { registerSchema, RegisterFormData, extractValidationErrors } from '../../validation';
+import { registerSchema, RegisterFormData } from '../../validation';
 import { Button, FormInput } from '../common';
+import { useForm } from '../../hooks/useForm';
+import { toast } from 'react-toastify';
 
 const Register: React.FC = () => {
-  const [formData, setFormData] = useState<RegisterFormData>({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-  });
-  const [errors, setErrors] = useState<Partial<RegisterFormData>>({});
-
-  const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
-    if (errors[name as keyof RegisterFormData]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+  const {
+    values,
+    errors,
+    isSubmitting,
+    handleChange,
+    handleSubmit
+  } = useForm({
+    initialValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    },
+    validationSchema: registerSchema,
+    onSubmit: async (formData) => {
+      try {
+        const response = await authService.register(formData);
+        
+        dispatch(setCredentials({
+          token: response.token,
+          accessToken: response.token
+        }));
+        
+        toast.success('Registration successful!');
+        navigate('/dashboard');
+      } catch (error: any) {
+        console.error('Registration error:', error);
+        const errorMessage = error.response?.data?.message || error.message || 'Registration failed. Please try again.';
+        toast.error(errorMessage);
+        throw error; // Re-throw to let useForm handle isSubmitting state
+      }
     }
-  };
-
-  const validateForm = async (): Promise<boolean> => {
-    try {
-      await registerSchema.validate(formData, { abortEarly: false });
-      setErrors({});
-      return true;
-    } catch (error) {
-      const validationErrors = extractValidationErrors(error as any);
-      setErrors(validationErrors);
-      return false;
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const isValid = await validateForm();
-    if (!isValid) {
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      // Call authService directly since we're using axios interceptors
-      const response = await authService.register(formData);
-      
-      // Store credentials in Redux
-      dispatch(setCredentials({
-        token: response.token,
-        accessToken: response.token
-      }));
-      
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Registration error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  });
 
   return (
     <div className="min-h-screen flex">
@@ -97,7 +76,7 @@ const Register: React.FC = () => {
               id="name"
               name="name"
               required
-              value={formData.name}
+              value={values.name}
               onChange={handleChange}
               placeholder="Enter your full name"
               error={errors.name}
@@ -112,7 +91,7 @@ const Register: React.FC = () => {
               name="email"
               autoComplete="email"
               required
-              value={formData.email}
+              value={values.email}
               onChange={handleChange}
               placeholder="Enter your email"
               error={errors.email}
@@ -126,7 +105,7 @@ const Register: React.FC = () => {
               id="password"
               name="password"
               required
-              value={formData.password}
+              value={values.password}
               onChange={handleChange}
               placeholder="Create a password"
               error={errors.password}
@@ -140,7 +119,7 @@ const Register: React.FC = () => {
               id="confirmPassword"
               name="confirmPassword"
               required
-              value={formData.confirmPassword}
+              value={values.confirmPassword}
               onChange={handleChange}
               placeholder="Confirm your password"
               error={errors.confirmPassword}
@@ -153,14 +132,12 @@ const Register: React.FC = () => {
               variant="primary"
               size="lg"
               fullWidth
-              disabled={isLoading}
-              loading={isLoading}
+              disabled={isSubmitting}
+              loading={isSubmitting}
             >
-              {isLoading ? 'Creating...' : 'Create Account'}
+              {isSubmitting ? 'Creating Account...' : 'Sign Up'}
             </Button>
           </form>
-
-         
 
           {/* Sign In Link */}
           <div className="text-center mt-6">

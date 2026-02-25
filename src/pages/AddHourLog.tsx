@@ -6,6 +6,8 @@ import { developerService, Developer } from '../services/developerService';
 import hourLogService, { HourLogFormData } from '../services/hourLogService';
 import { toast } from 'react-toastify';
 import { Axios } from '../utils/axios';
+import { useForm } from '../hooks/useForm';
+import { FormSelect, FormInput, Button } from '../components/common';
 
 interface Project {
   _id: string;
@@ -25,19 +27,78 @@ const AddHourLog: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [developers, setDevelopers] = useState<Developer[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
-  
-  const [formData, setFormData] = useState<HourLogFormData>({
-    client: '',
-    developer: '',
-    project: '',
-    date: new Date().toISOString().split('T')[0],
-    hours: 0,
-    description: ''
+
+  const {
+    values,
+    errors,
+    isSubmitting,
+    handleChange,
+    handleSubmit,
+    setFieldValue,
+    setErrors,
+    resetForm
+  } = useForm({
+    initialValues: {
+      client: '',
+      developer: user?.role === 2 ? user._id : '',
+      project: '',
+      date: new Date().toISOString().split('T')[0],
+      hours: 0,
+      description: ''
+    },
+    validationSchema: {
+      validate: (formData: HourLogFormData) => {
+        const newErrors: Record<string, string> = {};
+
+        if (!formData.project) {
+          newErrors.project = 'Please select a project';
+        }
+
+        // Client validation - only required if no project is selected
+        if (!formData.project && !formData.client) {
+          newErrors.client = 'Please select a client';
+        }
+
+        if (!formData.developer) {
+          newErrors.developer = 'Please select a developer';
+        }
+
+        if (!formData.date) {
+          newErrors.date = 'Please select a date';
+        }
+
+        if (!formData.hours || formData.hours <= 0) {
+          newErrors.hours = 'Hours must be greater than 0';
+        }
+
+        if (formData.hours > 24) {
+          newErrors.hours = 'Hours cannot exceed 24';
+        }
+
+        if (!formData.description.trim()) {
+          newErrors.description = 'Description is required';
+        }
+
+        return newErrors;
+      }
+    },
+    onSubmit: async (formData) => {
+      try {
+        await hourLogService.create(formData);
+        toast.success('Hour log added successfully');
+        
+        // Reset form
+        resetForm();
+        setFieldValue('developer', user?.role === 2 ? user._id : '');
+        setFieldValue('date', new Date().toISOString().split('T')[0]);
+      } catch (error: any) {
+        toast.error(error.response?.data?.message || 'Failed to add hour log');
+        console.error('Error adding hour log:', error);
+        throw error; // Re-throw to let useForm handle isSubmitting state
+      }
+    }
   });
-  
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchProjects();
@@ -48,9 +109,9 @@ const AddHourLog: React.FC = () => {
       fetchClientsAndDevelopers();
     } else if (user?.role === 2) {
       // Developers only need their own info
-      console.log("user",user)
-      setFormData((prev: any) => ({ ...prev, developer: user._id }));
-      console.log("formData",formData)
+      console.log("user", user);
+      setFieldValue('developer', user._id);
+      console.log("formData", values);
       fetchClientsAndDevelopers();
     }
   }, []);
@@ -85,7 +146,7 @@ const AddHourLog: React.FC = () => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }]);
-        setFormData((prev: any) => ({ ...prev, developer: user.id }));
+        setFieldValue('developer', user.id);
         // Developers don't need to fetch clients - they work with projects
         setClients([]);
       } else {
@@ -107,110 +168,23 @@ const AddHourLog: React.FC = () => {
   };
 
   useEffect(() => {
-    if (formData.project) {
-      const selectedProject = projects.find(p => p._id === formData.project);
+    if (values.project) {
+      const selectedProject = projects.find(p => p._id === values.project);
       if (selectedProject) {
-        setFormData(prev => ({
-          ...prev,
-          client: selectedProject.client._id
-        }));
+        setFieldValue('client', selectedProject.client._id);
         
         // Filter developers based on project assignment
         if (user?.role === 0) {
           const projectDevelopers = developers.filter((d: any) => 
             selectedProject.developers.some((pd: any) => pd._id === d._id)
           );
-          if (projectDevelopers.length > 0 && !projectDevelopers.some((d: any) => d._id === formData.developer)) {
-            setFormData((prev: any) => ({
-              ...prev,
-              developer: projectDevelopers[0]._id
-            }));
+          if (projectDevelopers.length > 0 && !projectDevelopers.some((d: any) => d._id === values.developer)) {
+            setFieldValue('developer', projectDevelopers[0]._id);
           }
         }
       }
     }
-  }, [formData.project]);
-
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.project) {
-      newErrors.project = 'Please select a project';
-    }
-
-    // Client validation - only required if no project is selected
-    if (!formData.project && !formData.client) {
-      newErrors.client = 'Please select a client';
-    }
-
-    if (!formData.developer) {
-      newErrors.developer = 'Please select a developer';
-    }
-
-    if (!formData.date) {
-      newErrors.date = 'Please select a date';
-    }
-
-    if (!formData.hours || formData.hours <= 0) {
-      newErrors.hours = 'Hours must be greater than 0';
-    }
-
-    if (formData.hours > 24) {
-      newErrors.hours = 'Hours cannot exceed 24';
-    }
-
-    if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("formdata",formData)
-    const isValid = validateForm();
-    if (!isValid) {
-      return;
-    }
-
-    setLoading(true);
-    try {
-      console.log("formdata",formData)
-      await hourLogService.create(formData);
-      toast.success('Hour log added successfully');
-      
-      // Reset form
-      setFormData({
-        client: '',
-        developer: user?.role === 2 ? user._id : '',
-        project: '',
-        date: new Date().toISOString().split('T')[0],
-        hours: 0,
-        description: ''
-      });
-      setErrors({});
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to add hour log');
-      console.error('Error adding hour log:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev: HourLogFormData) => ({ 
-      ...prev, 
-      [name]: name === 'hours' ? parseFloat(value) || 0 : value 
-    }));
-    
-    // Clear error for this field
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
+  }, [values.project]);
 
   if (fetchLoading) {
     return (
@@ -240,7 +214,7 @@ const AddHourLog: React.FC = () => {
             <select
               id="project"
               name="project"
-              value={formData.project}
+              value={values.project}
               onChange={handleChange}
               className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
                 errors.project ? 'border-red-300' : 'border-gray-300'
@@ -260,7 +234,7 @@ const AddHourLog: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Client Dropdown - Only show if no project is selected */}
-            {!formData.project && (
+            {!values.project && (
               <div>
                 <label htmlFor="client" className="block text-sm font-medium text-gray-700 mb-2">
                   Client *
@@ -268,7 +242,7 @@ const AddHourLog: React.FC = () => {
                 <select
                   id="client"
                   name="client"
-                  value={formData.client}
+                  value={values.client}
                   onChange={handleChange}
                   className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
                     errors.client ? 'border-red-300' : 'border-gray-300'
@@ -288,27 +262,27 @@ const AddHourLog: React.FC = () => {
             )}
 
             {/* Project Client Info - Show when project is selected */}
-            {formData.project && (
+            {values.project && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Client *
                 </label>
                 <div className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-100">
-                  {projects.find(p => p._id === formData.project)?.client.name || 'Loading...'}
+                  {projects.find(p => p._id === values.project)?.client.name || 'Loading...'}
                 </div>
                 <p className="mt-1 text-sm text-gray-500">Client auto-selected from project</p>
               </div>
             )}
 
             {/* Developer Dropdown */}
-            <div className={formData.project ? "md:col-span-2" : ""}>
+            <div className={values.project ? "md:col-span-2" : ""}>
               <label htmlFor="developer" className="block text-sm font-medium text-gray-700 mb-2">
                 Developer *
               </label>
               <select
                 id="developer"
                 name="developer"
-                value={formData.developer}
+                value={values.developer}
                 onChange={handleChange}
                 disabled={user?.role === 2}
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
@@ -341,7 +315,7 @@ const AddHourLog: React.FC = () => {
                 type="date"
                 id="date"
                 name="date"
-                value={formData.date}
+                value={values.date}
                 onChange={handleChange}
                 max={new Date().toISOString().split('T')[0]}
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 ${
@@ -362,7 +336,7 @@ const AddHourLog: React.FC = () => {
                 type="number"
                 id="hours"
                 name="hours"
-                value={formData.hours}
+                value={values.hours}
                 onChange={handleChange}
                 min="0.5"
                 max="24"
@@ -386,7 +360,7 @@ const AddHourLog: React.FC = () => {
             <textarea
               id="description"
               name="description"
-              value={formData.description}
+              value={values.description}
               onChange={handleChange}
               rows={4}
               placeholder="Describe the work performed..."
@@ -403,10 +377,10 @@ const AddHourLog: React.FC = () => {
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={loading}
+              disabled={isSubmitting}
               className="inline-flex justify-center py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Adding...' : 'Add Hour Log'}
+              {isSubmitting ? 'Adding...' : 'Add Hour Log'}
             </button>
           </div>
         </form>

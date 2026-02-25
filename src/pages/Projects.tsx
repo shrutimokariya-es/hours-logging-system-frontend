@@ -3,6 +3,21 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { toast } from 'react-toastify';
 import { Axios } from '../utils/axios';
+import hourLogService from '../services/hourLogService';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+
+interface HourLogDetails {
+  _id: string;
+  date: string;
+  hours: number;
+  description: string;
+  developer: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  createdAt: string;
+}
 
 interface Project {
   _id: string;
@@ -58,6 +73,9 @@ const Projects: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
+  const [projectHourLogs, setProjectHourLogs] = useState<Record<string, HourLogDetails[]>>({});
+  const [loadingHourLogs, setLoadingHourLogs] = useState<Record<string, boolean>>({});
   const [formData, setFormData] = useState<ProjectFormData>({
     name: '',
     description: '',
@@ -193,6 +211,49 @@ const Projects: React.FC = () => {
     }
   };
 
+  const toggleProjectExpansion = async (projectId: string) => {
+    const newExpanded = new Set(expandedProjects);
+    
+    if (newExpanded.has(projectId)) {
+      // Collapse project
+      newExpanded.delete(projectId);
+      setExpandedProjects(newExpanded);
+    } else {
+      // Expand project and fetch hour logs
+      newExpanded.add(projectId);
+      setExpandedProjects(newExpanded);
+      
+      if (!projectHourLogs[projectId]) {
+        setLoadingHourLogs(prev => ({ ...prev, [projectId]: true }));
+        
+        try {
+          const response = await hourLogService.getByProject(projectId, { limit: 50 });
+          
+          // Transform the data to match our interface
+          const transformedLogs: HourLogDetails[] = response.hourLogs.map(log => ({
+            _id: log._id,
+            date: log.date,
+            hours: log.hours,
+            description: log.description,
+            developer: typeof log.developer === 'object' ? log.developer : {
+              _id: log.developer,
+              name: 'Unknown',
+              email: ''
+            },
+            createdAt: log.createdAt
+          }));
+          
+          setProjectHourLogs(prev => ({ ...prev, [projectId]: transformedLogs }));
+        } catch (error: any) {
+          console.error('Error fetching hour logs:', error);
+          toast.error('Failed to fetch hour logs for this project');
+        } finally {
+          setLoadingHourLogs(prev => ({ ...prev, [projectId]: false }));
+        }
+      }
+    }
+  };
+
   const resetForm = () => {
     setFormData({
       name: '',
@@ -284,15 +345,26 @@ const Projects: React.FC = () => {
                 </tr>
               ) : (
                 projects.map((project) => (
-                  <tr key={project._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{project.name}</div>
-                        {project.description && (
-                          <div className="text-sm text-gray-500 truncate max-w-xs">{project.description}</div>
-                        )}
-                      </div>
-                    </td>
+                  <React.Fragment key={project._id}>
+                    <tr 
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => toggleProjectExpansion(project._id)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          {expandedProjects.has(project._id) ? (
+                            <ChevronDown className="w-4 h-4 mr-2 text-gray-400" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 mr-2 text-gray-400" />
+                          )}
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{project.name}</div>
+                            {project.description && (
+                              <div className="text-sm text-gray-500 truncate max-w-xs">{project.description}</div>
+                            )}
+                          </div>
+                        </div>
+                      </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{project.client.name}</div>
                       <div className="text-sm text-gray-500">{project.client.email}</div>
@@ -319,23 +391,71 @@ const Projects: React.FC = () => {
                         Actual: {project.actualHours || 0}h
                       </div>
                     </td>
-                    {user?.role === 0 && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => handleEdit(project)}
-                          className="text-green-600 hover:text-green-900 mr-3"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(project._id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Delete
-                        </button>
-                      </td>
+                      {user?.role === 0 && (
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => handleEdit(project)}
+                            className="text-green-600 hover:text-green-900 mr-3"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(project._id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                    
+                    {/* Expandable row for hour logs */}
+                    {expandedProjects.has(project._id) && (
+                      <tr>
+                        <td colSpan={user?.role === 0 ? 6 : 5} className="px-0 py-0">
+                          <div className="bg-gray-50 border-l-4 border-green-500">
+                            {loadingHourLogs[project._id] ? (
+                              <div className="px-6 py-4 text-center text-gray-500">
+                                Loading hour logs...
+                              </div>
+                            ) : projectHourLogs[project._id]?.length > 0 ? (
+                              <div className="p-4">
+                                <h4 className="text-sm font-semibold text-gray-700 mb-3">Logged Hours</h4>
+                                <div className="space-y-2">
+                                  {projectHourLogs[project._id].map((log) => (
+                                    <div key={log._id} className="bg-white p-3 rounded border border-gray-200">
+                                      <div className="flex justify-between items-start">
+                                        <div className="flex-1">
+                                          <div className="text-sm font-medium text-gray-900">
+                                            {log.developer.name}
+                                          </div>
+                                          <div className="text-sm text-gray-600 mt-1">
+                                            {log.description}
+                                          </div>
+                                        </div>
+                                        <div className="text-right ml-4">
+                                          <div className="text-sm font-semibold text-green-600">
+                                            {log.hours}h
+                                          </div>
+                                          <div className="text-xs text-gray-500">
+                                            {new Date(log.date).toLocaleDateString()}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="px-6 py-4 text-center text-gray-500">
+                                No hour logs found for this project
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
                     )}
-                  </tr>
+                  </React.Fragment>
                 ))
               )}
             </tbody>

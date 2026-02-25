@@ -59,7 +59,7 @@ export const FormInput: React.FC<InputProps> = (props) => {
     >
       <Input
         {...inputProps}
-        error={error ? String(error) : undefined}
+        // error={error ? String(error) : undefined}
         fullWidth={fullWidth}
       />
     </FormField>
