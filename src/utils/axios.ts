@@ -6,12 +6,12 @@ import { Store } from "@reduxjs/toolkit";
 import { ToastShow } from "../store/slices/toastSlice";
 
 //========================== Others ==========================//
-import { VITE_BACKEND_BASE_URL } from "../config";
+import { API_URL } from "../config";
 import { navigateTo } from "../helper/Navigate/Navigation";
 import { ROUTES } from "../router/constant/routes.path";
 import { cookieSet } from "../helper/cookieSet";
 
-export const Axios = axios.create({ baseURL: `${VITE_BACKEND_BASE_URL}` });
+export const Axios = axios.create({ baseURL: `${API_URL}` });
 
 export const setupAxios = (store: Store) => {
   const SKIP_COOKIE_ROUTES = [
