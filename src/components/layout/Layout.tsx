@@ -35,8 +35,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   });
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Navigation Header */}
-      <nav className="bg-green-700 text-white shadow-lg border-b border-green-800">
+      {/* Navigation Header - Fixed/Sticky */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-green-700 text-white shadow-lg border-b border-green-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center space-x-4">
@@ -75,9 +75,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </nav>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-white shadow-xl border-r border-gray-200 min-h-screen">
+      {/* Add padding-top to account for fixed navbar */}
+      <div className="flex pt-16">
+        {/* Sidebar - Fixed/Sticky */}
+        <div className="fixed left-0 top-16 w-64 bg-white shadow-xl border-r border-gray-200 h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="p-4 border-b border-gray-200">
             <h2 className="text-sm font-semibold text-gray-600 uppercase tracking-wider">Navigation</h2>
           </div>
@@ -107,8 +108,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </nav>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 p-8">
+        {/* Main Content - Add left margin to account for fixed sidebar */}
+        <div className="flex-1 ml-64 p-8">
           {children}
         </div>
       </div>

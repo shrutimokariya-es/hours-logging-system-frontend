@@ -3,9 +3,10 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { RootState } from '../store/store';
 import { PageHeader, StatsCard, DataTable, Card } from '../components/common';
+import ImportHoursModal from '../components/common/ImportHoursModal';
 import dashboardService, { DashboardSummary } from '../services/dashboardService';
-import { downloadPDFReport, ReportData } from '../utils/pdfGenerator';
-import { FileDown, Download } from 'lucide-react';
+import { downloadCSVReport, ReportData } from '../utils/csvGenerator';
+import { FileDown, Download, Upload } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -14,6 +15,7 @@ const Dashboard: React.FC = () => {
   const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(null);
   const [generatingReport, setGeneratingReport] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [reportDateRange, setReportDateRange] = useState({
     start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
     end: new Date().toISOString().split('T')[0]
@@ -74,12 +76,17 @@ const Dashboard: React.FC = () => {
         }))
       };
 
-      await downloadPDFReport(reportData, `hours-report-${reportDateRange.start}-to-${reportDateRange.end}.pdf`);
+      downloadCSVReport(reportData, `hours-report-${reportDateRange.start}-to-${reportDateRange.end}.csv`);
     } catch (error: any) {
       console.error('Error generating PDF report:', error);
     } finally {
       setGeneratingReport(false);
     }
+  };
+
+  const handleImportSuccess = () => {
+    // Refresh dashboard data after successful import
+    fetchDashboardData();
   };
 
   const stats = dashboardData ? [
@@ -109,7 +116,7 @@ const Dashboard: React.FC = () => {
     },
   ] : [];
 
-  const recentActivities = dashboardData?.recentLogs.map(log => ({
+  const recentActivities = dashboardData?.recentLogs.slice(0, 20).map(log => ({
     id: parseInt(log.id),
     clientName: log.clientName,
     projectName: log.project || 'N/A',
@@ -183,21 +190,23 @@ const Dashboard: React.FC = () => {
       {/* Recent Activities */}
       <Card>
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">Your Logged Hours</h3>
+          <h3 className="text-lg font-medium text-gray-900">Your Logged Hours (Recent 20)</h3>
         </div>
         <div className="p-6">
-          <DataTable
-            data={recentActivities}
-            columns={columns}
-            emptyMessage="No hours logged yet. Start logging your work hours to see them here."
-          />
+          <div className="max-h-[300px] overflow-y-auto">
+            <DataTable
+              data={recentActivities}
+              columns={columns}
+              emptyMessage="No hours logged yet. Start logging your work hours to see them here."
+            />
+          </div>
         </div>
       </Card>
 
       {/* Quick Actions */}
       <Card>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {user?.role === 0 && (
             <>
               <button
@@ -213,13 +222,20 @@ const Dashboard: React.FC = () => {
                 ) : (
                   <>
                     <FileDown size={20} />
-                    <span>Generate Report (PDF)</span>
+                    <span>Generate Report (CSV)</span>
                   </>
                 )}
               </button>
               <button
-                onClick={() => navigate('/reports')}
+                onClick={() => setShowImportModal(true)}
                 className="flex items-center justify-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <Upload size={20} />
+                <span>Import Hour Logs</span>
+              </button>
+              <button
+                onClick={() => navigate('/reports')}
+                className="flex items-center justify-center space-x-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
               >
                 <span>📈</span>
                 <span>View Reports</span>
@@ -303,7 +319,7 @@ const Dashboard: React.FC = () => {
                   onClick={handleConfirmDownload}
                   className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
                 >
-                  Download PDF
+                  Download CSV
                 </button>
                 <button
                   type="button"
@@ -317,6 +333,13 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Import Modal */}
+      <ImportHoursModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImportSuccess={handleImportSuccess}
+      />
     </div>
   );
 };

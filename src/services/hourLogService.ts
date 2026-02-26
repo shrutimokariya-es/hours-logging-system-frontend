@@ -127,6 +127,18 @@ const hourLogService = {
     const response = await Axios.get(`/hour-logs/project/${projectId}`, { params });
     console.log("resposne dlvndfnvlkn", response.data)
     return response.data.data;
+  },
+
+  importHourLog: async (data: {
+    project: string;
+    clientName: string;
+    developerName: string;
+    hours: number;
+    date: string;
+    description?: string;
+  }): Promise<HourLog> => {
+    const response = await Axios.post('/hour-logs/import', data);
+    return response.data;
   }
 };
 

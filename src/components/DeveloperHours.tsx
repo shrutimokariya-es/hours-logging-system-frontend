@@ -123,14 +123,17 @@ useEffect(() => {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-gray-900">Developer Hours</h3>
+    <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-lg font-medium text-gray-900">Developer Hours</h3>
+          <p className="text-sm text-gray-600 mt-1">Developer performance metrics</p>
+        </div>
         <div className="flex items-center space-x-4">
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white shadow-sm"
           >
             <option value="this-week">This Week</option>
             <option value="this-month">This Month</option>
@@ -201,7 +204,7 @@ useEffect(() => {
           </div>
 
           {/* Detailed Table */}
-          <div className="overflow-x-auto">
+          <div className="max-h-[400px] overflow-y-auto overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>

@@ -67,7 +67,7 @@ const ClientDetails: React.FC = () => {
     end: new Date().toISOString().split('T')[0]
   });
   const [timelineFilter, setTimelineFilter] = useState({
-    start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+    start: new Date(2020, 0, 1).toISOString().split('T')[0], // Start from 2020 to show all historical data
     end: new Date().toISOString().split('T')[0]
   });
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
@@ -93,8 +93,9 @@ const ClientDetails: React.FC = () => {
 
   const fetchProjectHours = useCallback(async () => {
     try {
+      // Don't apply date filter for initial load - fetch all data
       const response = await Axios.get(
-        `/reports/clients/hours?clientId=${id}&startDate=${dateRange.start}&endDate=${dateRange.end}`
+        `/reports/clients/hours?clientId=${id}`
       );
       if (response.data.success) {
         setClientHours(response.data.data.clientHours);
@@ -104,32 +105,26 @@ const ClientDetails: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [id, dateRange]);
+  }, [id]);
 
   useEffect(() => {
     fetchClientDetails();
     fetchProjectHours();
   }, [fetchClientDetails, fetchProjectHours]);
 
-  // Sync timeline filter with main date range on initial load
-  useEffect(() => {
-    setTimelineFilter(dateRange);
-  }, [dateRange]);
-
   const handleTimelineFilterChange = (type: 'start' | 'end', value: string) => {
     setTimelineFilter(prev => ({ ...prev, [type]: value }));
   };
 
   const applyTimelineFilter = () => {
-    // Trigger re-fetch with timeline filter
-    setDateRange(timelineFilter);
+    // Timeline filter is applied in groupLogsByDate function
+    // No need to refetch data
   };
 
   const resetTimelineFilter = () => {
-    const defaultStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+    const defaultStart = new Date(2020, 0, 1).toISOString().split('T')[0]; // Show all historical data
     const defaultEnd = new Date().toISOString().split('T')[0];
     setTimelineFilter({ start: defaultStart, end: defaultEnd });
-    setDateRange({ start: defaultStart, end: defaultEnd });
   };
 
   const getTotalHours = () => clientHours.length > 0 ? clientHours[0].totalHours : 0;

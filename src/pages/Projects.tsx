@@ -290,47 +290,88 @@ const Projects: React.FC = () => {
 console.log("projects",projects)
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
-          <p className="text-gray-600">Manage your projects and track progress</p>
+      {/* Header with gradient */}
+      <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-lg shadow-lg p-6 text-white">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Projects</h1>
+            <p className="text-green-100 mt-1">Manage your projects and track progress</p>
+            <div className="flex items-center space-x-4 mt-3">
+              <div className="flex items-center space-x-2">
+                <div className="bg-white bg-opacity-20 rounded-full p-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">{projects.length}</div>
+                  <div className="text-xs text-green-100">Total Projects</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="bg-white bg-opacity-20 rounded-full p-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">{projects.filter(p => p.status === 'Active').length}</div>
+                  <div className="text-xs text-green-100">Active</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="bg-white bg-opacity-20 rounded-full p-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold">{projects.reduce((sum, p) => sum + (p.actualHours || 0), 0)}</div>
+                  <div className="text-xs text-green-100">Total Hours</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {user?.role === 0 && (
+            <button
+              onClick={() => {
+                resetForm();
+                setEditingProject(null);
+                setShowModal(true);
+              }}
+              className="bg-white text-green-600 hover:bg-green-50 px-6 py-3 rounded-lg font-semibold shadow-md transform hover:scale-105 transition-all duration-200 flex items-center space-x-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Add Project</span>
+            </button>
+          )}
         </div>
-        {user?.role === 0 && (
-          <button
-            onClick={() => {
-              resetForm();
-              setEditingProject(null);
-              setShowModal(true);
-            }}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-          >
-            Add Project
-          </button>
-        )}
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Project Name
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                  Project Details
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                   Client
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Developers
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                  Team
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Hours
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
+                  Progress
                 </th>
                 {user?.role === 0 && (
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">
                     Actions
                   </th>
                 )}
@@ -339,71 +380,128 @@ console.log("projects",projects)
             <tbody className="bg-white divide-y divide-gray-200">
               {projects.length === 0 ? (
                 <tr>
-                  <td colSpan={user?.role === 0 ? 6 : 5} className="px-6 py-12 text-center text-gray-500">
-                    No projects found
+                  <td colSpan={user?.role === 0 ? 6 : 5} className="px-6 py-16 text-center">
+                    <div className="text-6xl mb-4">📁</div>
+                    <p className="text-gray-600 text-lg font-medium">No projects found</p>
+                    <p className="text-gray-500 text-sm mt-2">Create your first project to get started</p>
+                    {user?.role === 0 && (
+                      <button
+                        onClick={() => {
+                          resetForm();
+                          setEditingProject(null);
+                          setShowModal(true);
+                        }}
+                        className="mt-4 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                      >
+                        Create Project
+                      </button>
+                    )}
                   </td>
                 </tr>
               ) : (
                 projects.map((project) => (
                   <React.Fragment key={project._id}>
                     <tr 
-                      className="hover:bg-gray-50 cursor-pointer"
+                      className="hover:bg-green-50 cursor-pointer transition-colors duration-150"
                       onClick={() => toggleProjectExpansion(project._id)}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4">
                         <div className="flex items-center">
-                          {expandedProjects.has(project._id) ? (
-                            <ChevronDown className="w-4 h-4 mr-2 text-gray-400" />
-                          ) : (
-                            <ChevronRight className="w-4 h-4 mr-2 text-gray-400" />
-                          )}
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{project.name}</div>
-                            {project.description && (
-                              <div className="text-sm text-gray-500 truncate max-w-xs">{project.description}</div>
+                          <div className="flex-shrink-0">
+                            {expandedProjects.has(project._id) ? (
+                              <ChevronDown className="w-5 h-5 text-green-600" />
+                            ) : (
+                              <ChevronRight className="w-5 h-5 text-gray-400" />
                             )}
+                          </div>
+                          <div className="ml-3">
+                            <div className="text-sm font-semibold text-gray-900">{project.name}</div>
+                            {project.description && (
+                              <div className="text-xs text-gray-500 truncate max-w-xs mt-1">{project.description}</div>
+                            )}
+                            <div className="flex items-center space-x-2 mt-1">
+                              <span className="text-xs text-gray-400">
+                                {project.billingType === 'Hourly' ? '⏱️ Hourly' : '💰 Fixed'}
+                              </span>
+                              {project.hourlyRate && (
+                                <span className="text-xs text-gray-400">• ${project.hourlyRate}/hr</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{project.client.name}</div>
-                      <div className="text-sm text-gray-500">{project.client.email}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(project.status)}`}>
-                        {project.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {project.developers.length} developer{project.developers.length !== 1 ? 's' : ''}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {project.developers.slice(0, 2).map((d: any) => d.name).join(', ')}
-                        {project.developers.length > 2 && '...'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        Est: {project.estimatedHours || 0}h
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        Actual: {project.actualHours || 0}h
-                      </div>
-                    </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-xs">
+                            {project.client.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="ml-3">
+                            <div className="text-sm font-medium text-gray-900">{project.client.name}</div>
+                            <div className="text-xs text-gray-500">{project.client.email}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border ${getStatusColor(project.status)}`}>
+                          {project.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex -space-x-2">
+                            {project.developers.slice(0, 3).map((dev: any, idx) => (
+                              <div 
+                                key={dev._id}
+                                className="h-8 w-8 rounded-full bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center text-white font-bold text-xs border-2 border-white"
+                                title={dev.name}
+                              >
+                                {dev.name.charAt(0).toUpperCase()}
+                              </div>
+                            ))}
+                            {project.developers.length > 3 && (
+                              <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold text-xs border-2 border-white">
+                                +{project.developers.length - 3}
+                              </div>
+                            )}
+                          </div>
+                          <div className="ml-3 text-xs text-gray-500">
+                            {project.developers.length} dev{project.developers.length !== 1 ? 's' : ''}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600 font-medium">Est: {project.estimatedHours || 0}h</span>
+                            <span className="text-green-600 font-semibold">Act: {project.actualHours || 0}h</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full ${
+                                (project.actualHours || 0) > (project.estimatedHours || 0) 
+                                  ? 'bg-red-500' 
+                                  : 'bg-green-500'
+                              }`}
+                              style={{ 
+                                width: `${Math.min(100, ((project.actualHours || 0) / (project.estimatedHours || 1)) * 100)}%` 
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </td>
                       {user?.role === 0 && (
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => handleEdit(project)}
-                            className="text-green-600 hover:text-green-900 mr-3"
+                            className="text-green-600 hover:text-green-900 mr-4 font-semibold"
                           >
-                            Edit
+                            ✏️ Edit
                           </button>
                           <button
                             onClick={() => handleDelete(project._id)}
-                            className="text-red-600 hover:text-red-900"
+                            className="text-red-600 hover:text-red-900 font-semibold"
                           >
-                            Delete
+                            🗑️ Delete
                           </button>
                         </td>
                       )}
@@ -413,32 +511,46 @@ console.log("projects",projects)
                     {expandedProjects.has(project._id) && (
                       <tr>
                         <td colSpan={user?.role === 0 ? 6 : 5} className="px-0 py-0">
-                          <div className="bg-gray-50 border-l-4 border-green-500">
+                          <div className="bg-gradient-to-r from-green-50 to-teal-50 border-l-4 border-green-500">
                             {loadingHourLogs[project._id] ? (
-                              <div className="px-6 py-4 text-center text-gray-500">
-                                Loading hour logs...
+                              <div className="px-6 py-8 text-center">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+                                <p className="text-gray-600 mt-2">Loading hour logs...</p>
                               </div>
                             ) : projectHourLogs[project._id]?.length > 0 ? (
-                              <div className="p-4">
-                                <h4 className="text-sm font-semibold text-gray-700 mb-3">Logged Hours</h4>
-                                <div className="space-y-2">
+                              <div className="p-6">
+                                <h4 className="text-sm font-bold text-gray-800 mb-4 flex items-center">
+                                  <svg className="w-5 h-5 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                                  </svg>
+                                  Logged Hours ({projectHourLogs[project._id].length})
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                   {projectHourLogs[project._id].map((log) => (
-                                    <div key={log._id} className="bg-white p-3 rounded border border-gray-200">
+                                    <div key={log._id} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
                                       <div className="flex justify-between items-start">
                                         <div className="flex-1">
-                                          <div className="text-sm font-medium text-gray-900">
-                                            {log.developer.name}
+                                          <div className="flex items-center space-x-2 mb-2">
+                                            <div className="h-6 w-6 rounded-full bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center text-white font-bold text-xs">
+                                              {log.developer.name.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div className="text-sm font-semibold text-gray-900">
+                                              {log.developer.name}
+                                            </div>
                                           </div>
-                                          <div className="text-sm text-gray-600 mt-1">
+                                          <div className="text-sm text-gray-600 mt-2">
                                             {log.description}
                                           </div>
                                         </div>
                                         <div className="text-right ml-4">
-                                          <div className="text-sm font-semibold text-green-600">
+                                          <div className="text-lg font-bold text-green-600">
                                             {log.hours}h
                                           </div>
-                                          <div className="text-xs text-gray-500">
-                                            {new Date(log.date).toLocaleDateString()}
+                                          <div className="text-xs text-gray-500 mt-1">
+                                            {new Date(log.date).toLocaleDateString('en-US', { 
+                                              month: 'short', 
+                                              day: 'numeric' 
+                                            })}
                                           </div>
                                         </div>
                                       </div>
@@ -447,8 +559,10 @@ console.log("projects",projects)
                                 </div>
                               </div>
                             ) : (
-                              <div className="px-6 py-4 text-center text-gray-500">
-                                No hour logs found for this project
+                              <div className="px-6 py-8 text-center">
+                                <div className="text-4xl mb-2">📝</div>
+                                <p className="text-gray-600 font-medium">No hour logs found</p>
+                                <p className="text-gray-500 text-sm mt-1">Start logging hours for this project</p>
                               </div>
                             )}
                           </div>

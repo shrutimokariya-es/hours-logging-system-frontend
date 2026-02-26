@@ -24,15 +24,17 @@ const ClientHours: React.FC<ClientHoursProps> = () => {
   const [dateRange, setDateRange] = useState<string>('this-month');
   const [customStartDate, setCustomStartDate] = useState<string>('');
   const [customEndDate, setCustomEndDate] = useState<string>('');
+  const [appliedDateRange, setAppliedDateRange] = useState<string>('this-month');
+  const [appliedCustomDates, setAppliedCustomDates] = useState({ start: '', end: '' });
 
   const fetchClientHours = useCallback(async () => {
     try {
       setLoading(true);
       let params: any = {};
       
-      if (dateRange === 'custom' && customStartDate && customEndDate) {
-        params.startDate = customStartDate;
-        params.endDate = customEndDate;
+      if (appliedDateRange === 'custom' && appliedCustomDates.start && appliedCustomDates.end) {
+        params.startDate = appliedCustomDates.start;
+        params.endDate = appliedCustomDates.end;
       } else {
         // Map frontend date range to backend period
         const periodMap: Record<string, string> = {
@@ -42,7 +44,7 @@ const ClientHours: React.FC<ClientHoursProps> = () => {
           'this-quarter': 'this-quarter',
           'this-year': 'this-year'
         };
-        params.period = periodMap[dateRange] || 'monthly';
+        params.period = periodMap[appliedDateRange] || 'monthly';
       }
       
       const clientHours = await reportService.getClientHours(params);
@@ -53,11 +55,29 @@ const ClientHours: React.FC<ClientHoursProps> = () => {
     } finally {
       setLoading(false);
     }
-  }, [dateRange, customStartDate, customEndDate]);
+  }, [appliedDateRange, appliedCustomDates]);
 
   useEffect(() => {
     fetchClientHours();
   }, [fetchClientHours]);
+
+  const handleApplyDateRange = () => {
+    if (dateRange === 'custom') {
+      if (!customStartDate || !customEndDate) {
+        return; // Don't apply if dates are not selected
+      }
+      setAppliedCustomDates({ start: customStartDate, end: customEndDate });
+    }
+    setAppliedDateRange(dateRange);
+  };
+
+  const handleClearDateRange = () => {
+    setDateRange('this-month');
+    setCustomStartDate('');
+    setCustomEndDate('');
+    setAppliedDateRange('this-month');
+    setAppliedCustomDates({ start: '', end: '' });
+  };
 
   if (loading) {
     return (
@@ -88,14 +108,23 @@ const ClientHours: React.FC<ClientHoursProps> = () => {
   }
 console.log("??",clientData)
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-gray-900">Client Hours</h3>
+    <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-lg font-medium text-gray-900">Client Hours</h3>
+          <p className="text-sm text-gray-600 mt-1">Client-wise hours breakdown</p>
+        </div>
         <div className="flex items-center space-x-4">
           <select
             value={dateRange}
-            onChange={(e) => setDateRange(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            onChange={(e) => {
+              setDateRange(e.target.value);
+              // Auto-apply for non-custom ranges
+              if (e.target.value !== 'custom') {
+                setAppliedDateRange(e.target.value);
+              }
+            }}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white shadow-sm"
           >
             <option value="this-week">This Week</option>
             <option value="this-month">This Month</option>
@@ -108,28 +137,43 @@ console.log("??",clientData)
       </div>
       
       {dateRange === 'custom' && (
-        <div className="flex items-center space-x-4 mb-4">
-          <input
-            type="date"
-            value={customStartDate}
-            onChange={(e) => setCustomStartDate(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-            placeholder="Start Date"
-          />
-          <span className="text-gray-500">to</span>
-          <input
-            type="date"
-            value={customEndDate}
-            onChange={(e) => setCustomEndDate(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
-            placeholder="End Date"
-          />
-          <button
-            onClick={fetchClientHours}
-            className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700 transition-colors"
-          >
-            Apply
-          </button>
+        <div className="flex items-center space-x-3 mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1">Start Date</label>
+            <input
+              type="date"
+              value={customStartDate}
+              onChange={(e) => setCustomStartDate(e.target.value)}
+              max={customEndDate || undefined}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            />
+          </div>
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-gray-700 mb-1">End Date</label>
+            <input
+              type="date"
+              value={customEndDate}
+              onChange={(e) => setCustomEndDate(e.target.value)}
+              min={customStartDate || undefined}
+              max={new Date().toISOString().split('T')[0]}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            />
+          </div>
+          <div className="flex items-end space-x-2">
+            <button
+              onClick={handleApplyDateRange}
+              disabled={!customStartDate || !customEndDate}
+              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              Apply
+            </button>
+            <button
+              onClick={handleClearDateRange}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400"
+            >
+              Clear
+            </button>
+          </div>
         </div>
       )}
       

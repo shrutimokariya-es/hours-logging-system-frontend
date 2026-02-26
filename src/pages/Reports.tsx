@@ -5,12 +5,15 @@ import ClientHours from '../components/ClientHours';
 import DeveloperHours from '../components/DeveloperHours';
 import HoursSummary from '../components/HoursSummary';
 import { PageHeader, TabNavigation } from '../components/common';
+import ImportHoursModal from '../components/common/ImportHoursModal';
+import { Upload } from 'lucide-react';
 
 const Reports: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const [activeView, setActiveView] = useState<'summary' | 'clients' | 'developers'>('summary');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const tabs = [
     { key: 'summary', label: 'Hours Summary', description: 'Overview of all hours and activity' },
@@ -37,6 +40,11 @@ const Reports: React.FC = () => {
 
     initializeReports();
   }, []);
+
+  const handleImportSuccess = () => {
+    // Refresh the current view after successful import
+    window.location.reload();
+  };
 
   if (loading) {
     return (
@@ -71,7 +79,17 @@ const Reports: React.FC = () => {
       <PageHeader 
         title="Reports" 
         subtitle="Generate and manage your reports"
-      />
+      >
+        {user?.role === 0 && (
+          <button
+            onClick={() => setShowImportModal(true)}
+            className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+          >
+            <Upload size={18} />
+            <span>Import Hour Logs (CSV)</span>
+          </button>
+        )}
+      </PageHeader>
 
       {/* Navigation Tabs */}
       <TabNavigation
@@ -92,6 +110,13 @@ const Reports: React.FC = () => {
       {activeView === 'developers' && (
         <DeveloperHours />
       )}
+
+      {/* Import Modal */}
+      <ImportHoursModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImportSuccess={handleImportSuccess}
+      />
     </div>
   );
 };
