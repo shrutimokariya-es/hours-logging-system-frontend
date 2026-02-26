@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import AddClientModal from '../components/clients/AddClientModal';
 import EditClientModal from '../components/clients/EditClientModal';
 import { clientService, Client, ClientFormData, ClientListResponse } from '../services/clientService';
-import { Button } from '../components/common';
 
 const Clients: React.FC = () => {
   const navigate = useNavigate();

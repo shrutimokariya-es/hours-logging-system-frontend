@@ -62,10 +62,7 @@ const ClientDetails: React.FC = () => {
   const [clientHours, setClientHours] = useState<ClientHoursData[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
-  const [dateRange, setDateRange] = useState({
-    start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
-    end: new Date().toISOString().split('T')[0]
-  });
+
   const [timelineFilter, setTimelineFilter] = useState({
     start: new Date(2020, 0, 1).toISOString().split('T')[0], // Start from 2020 to show all historical data
     end: new Date().toISOString().split('T')[0]
