@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store/store';
-import { toast } from 'react-toastify';
 import { Axios } from '../utils/axios';
 import hourLogService from '../services/hourLogService';
 import { ChevronDown, ChevronRight } from 'lucide-react';
@@ -104,11 +103,9 @@ const Projects: React.FC = () => {
       if (response.data.success) {
         setProjects(response.data.data.projects);
       } else {
-        toast.error(response.data.message || 'Failed to fetch projects');
       }
     } catch (error: any) {
       console.error('Error fetching projects:', error);
-      toast.error(error.response?.data?.message || 'Failed to fetch projects');
     } finally {
       setLoading(false);
     }
@@ -121,11 +118,9 @@ const Projects: React.FC = () => {
       if (response.data.success) {
         setClients(response.data.data.clients);
       } else {
-        toast.error(response.data.message || 'Failed to fetch clients');
       }
     } catch (error: any) {
       console.error('Error fetching clients:', error);
-      toast.error(error.response?.data?.message || 'Failed to fetch clients');
     }
   };
 
@@ -136,11 +131,9 @@ const Projects: React.FC = () => {
       if (response.data.success) {
         setDevelopers(response.data.data.developers);
       } else {
-        toast.error(response.data.message || 'Failed to fetch developers');
       }
     } catch (error: any) {
       console.error('Error fetching developers:', error);
-      toast.error(error.response?.data?.message || 'Failed to fetch developers');
     }
   };
 
@@ -159,17 +152,14 @@ const Projects: React.FC = () => {
       console.log('Submit response:', response.data);
       
       if (response.data.success) {
-        toast.success(editingProject ? 'Project updated successfully' : 'Project created successfully');
         setShowModal(false);
         setEditingProject(null);
         resetForm();
         fetchProjects();
       } else {
-        toast.error(response.data.message || 'Failed to save project');
       }
     } catch (error: any) {
       console.error('Error saving project:', error);
-      toast.error(error.response?.data?.message || 'Failed to save project');
     }
   };
 
@@ -200,14 +190,11 @@ const Projects: React.FC = () => {
       console.log('Delete response:', response.data);
       
       if (response.data.success) {
-        toast.success('Project deleted successfully');
         fetchProjects();
       } else {
-        toast.error(response.data.message || 'Failed to delete project');
       }
     } catch (error: any) {
       console.error('Error deleting project:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete project');
     }
   };
 
@@ -246,7 +233,6 @@ const Projects: React.FC = () => {
           setProjectHourLogs(prev => ({ ...prev, [projectId]: transformedLogs }));
         } catch (error: any) {
           console.error('Error fetching hour logs:', error);
-          toast.error('Failed to fetch hour logs for this project');
         } finally {
           setLoadingHourLogs(prev => ({ ...prev, [projectId]: false }));
         }

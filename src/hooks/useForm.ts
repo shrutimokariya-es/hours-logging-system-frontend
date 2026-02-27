@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 interface UseFormOptions<T> {
   initialValues: T;
   validationSchema?: any;
+  context?: Record<string, any>;
   onSubmit: (values: T) => Promise<void> | void;
 }
 
@@ -23,6 +24,7 @@ interface UseFormReturn<T> {
 export const useForm = <T extends Record<string, any>>({
   initialValues,
   validationSchema,
+  context,
   onSubmit
 }: UseFormOptions<T>): UseFormReturn<T> => {
   const [values, setValues] = useState<T>(initialValues);
@@ -34,7 +36,7 @@ export const useForm = <T extends Record<string, any>>({
     if (!validationSchema) return true;
 
     try {
-      await validationSchema.validate(values, { abortEarly: false });
+      await validationSchema.validate(values, { abortEarly: false, context });
       setErrors({});
       return true;
     } catch (error: any) {
@@ -51,7 +53,7 @@ export const useForm = <T extends Record<string, any>>({
       setErrors(validationErrors);
       return false;
     }
-  }, [values, validationSchema]);
+  }, [values, validationSchema, context]);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;

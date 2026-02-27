@@ -8,6 +8,7 @@ export {
   clientSchema,
   developerSchema,
   projectSchema,
+  taskSchema,
   hoursLogSchema,
   reportSchema,
   
@@ -20,6 +21,7 @@ export type {
   ClientFormData,
   DeveloperFormData,
   ProjectFormData,
+  TaskFormData,
   HoursLogFormData,
   ReportFormData,
   ValidationError,

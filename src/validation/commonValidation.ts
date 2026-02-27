@@ -51,66 +51,84 @@ export const positiveNumberValidation = (fieldName: string) =>
 // Client validation schema
 export const clientSchema = yup.object().shape({
   name: nameValidation,
-  email: emailValidation,
-  company: requiredStringValidation('Company name', 2),
-  phone: phoneValidation.optional(),
-  address: requiredStringValidation('Address', 5),
-  hourlyRate: positiveNumberValidation('Hourly rate'),
+  companyEmail: emailValidation,
+  billingType: yup.string().oneOf(['Hourly', 'Fixed'], 'Invalid billing type').required('Billing type is required'),
+  status: yup.string().oneOf(['Active', 'Inactive'], 'Invalid status').required('Status is required'),
+  password: yup.string().when('$isEdit', {
+    is: false,
+    then: (schema) => passwordValidation,
+    otherwise: (schema) => schema.optional()
+  })
 });
 
 // Developer validation schema
 export const developerSchema = yup.object().shape({
   name: nameValidation,
   email: emailValidation,
-  phone: phoneValidation.optional(),
-  skills: yup
-    .array()
-    .of(yup.string().required('Skill is required'))
-    .min(1, 'At least one skill is required')
-    .required('Skills are required'),
-  hourlyRate: positiveNumberValidation('Hourly rate'),
-  experience: numberValidation('Years of experience', 0)
-    .max(50, 'Experience cannot exceed 50 years'),
+  hourlyRate: yup.number().min(0, 'Hourly rate must be positive').required('Hourly rate is required'),
+  status: yup.string().oneOf(['Active', 'Inactive'], 'Invalid status').required('Status is required'),
+  password: yup.string().when('$isEdit', {
+    is: false,
+    then: (schema) => passwordValidation,
+    otherwise: (schema) => schema.optional()
+  })
 });
 
 // Project validation schema
 export const projectSchema = yup.object().shape({
-  name: requiredStringValidation('Project name', 2),
-  description: requiredStringValidation('Project description', 10),
-  clientId: yup.string().required('Client is required'),
-  developerIds: yup
-    .array()
-    .of(yup.string())
-    .min(1, 'At least one developer is required'),
-  startDate: yup.date().required('Start date is required'),
-  endDate: yup
-    .date()
-    .required('End date is required')
-    .min(yup.ref('startDate'), 'End date must be after start date'),
-  budget: positiveNumberValidation('Budget'),
+  name: requiredStringValidation('Project name', 2).max(100, 'Project name cannot exceed 100 characters'),
+  description: yup.string().max(500, 'Description cannot exceed 500 characters'),
+  client: yup.string().required('Client is required'),
+  developers: yup.array().of(yup.string()),
+  status: yup.string().oneOf(['Planning', 'Active', 'On Hold', 'Completed', 'Cancelled'], 'Invalid status').required('Status is required'),
+  startDate: yup.string(),
+  endDate: yup.string().test('is-after-start', 'End date must be after start date', function(value) {
+    const { startDate } = this.parent;
+    if (!value || !startDate) return true;
+    return new Date(value) >= new Date(startDate);
+  }),
+  estimatedHours: yup.number().min(0, 'Estimated hours must be positive'),
+  hourlyRate: yup.number().min(0, 'Hourly rate must be positive'),
+  billingType: yup.string().oneOf(['Hourly', 'Fixed'], 'Invalid billing type').required('Billing type is required')
+});
+
+// Task validation schema
+export const taskSchema = yup.object().shape({
+  title: requiredStringValidation('Task title', 2).max(200, 'Task title cannot exceed 200 characters'),
+  description: yup.string().max(1000, 'Description cannot exceed 1000 characters'),
+  project: yup.string().required('Project is required'),
+  assignedTo: yup.array().of(yup.string()).min(1, 'At least one developer must be assigned'),
+  status: yup.string().oneOf(['Todo', 'In Progress', 'Review', 'Completed', 'Blocked'], 'Invalid status').required('Status is required'),
+  priority: yup.string().oneOf(['Low', 'Medium', 'High', 'Urgent'], 'Invalid priority').required('Priority is required'),
+  estimatedHours: yup.number().min(0, 'Estimated hours must be positive'),
+  startDate: yup.string(),
+  dueDate: yup.string().test('is-after-start', 'Due date must be after start date', function(value) {
+    const { startDate } = this.parent;
+    if (!value || !startDate) return true;
+    return new Date(value) >= new Date(startDate);
+  })
 });
 
 // Hours logging validation schema
 export const hoursLogSchema = yup.object().shape({
-  projectId: yup.string().required('Project is required'),
-  developerId: yup.string().required('Developer is required'),
-  date: yup.date().required('Date is required'),
-  hours: numberValidation('Hours', 0.5)
-    .max(24, 'Hours cannot exceed 24')
-    .test(
-      'max-decimal-places',
-      'Hours can have maximum 2 decimal places',
-      (value) => {
-        if (!value) return false;
-        const decimalPlaces = value.toString().split('.')[1];
-        return !decimalPlaces || decimalPlaces.length <= 2;
-      }
-    ),
-  description: requiredStringValidation('Description', 5),
-  tasks: yup
-    .array()
-    .of(yup.string().required('Task is required'))
-    .min(1, 'At least one task is required'),
+  project: yup.string().required('Project is required'),
+  task: yup.string().when('$isDeveloper', {
+    is: true,
+    then: (schema) => schema.required('Task is required for developers'),
+    otherwise: (schema) => schema.optional()
+  }),
+  client: yup.string().required('Client is required'),
+  developer: yup.string().required('Developer is required'),
+  date: yup.string().required('Date is required'),
+  hours: yup.number()
+    .required('Hours is required')
+    .min(0.5, 'Minimum 0.5 hours required')
+    .max(24, 'Maximum 24 hours allowed')
+    .test('is-half-increment', 'Hours must be in 0.5 hour increments', (value) => {
+      if (!value) return false;
+      return value % 0.5 === 0;
+    }),
+  description: requiredStringValidation('Description', 5).max(500, 'Description cannot exceed 500 characters')
 });
 
 // Report generation validation schema
@@ -140,39 +158,53 @@ export const reportSchema = yup.object().shape({
 // Type definitions
 export interface ClientFormData {
   name: string;
-  email: string;
-  company: string;
-  phone?: string;
-  address: string;
-  hourlyRate: number;
+  companyEmail: string;
+  billingType: 'Hourly' | 'Fixed';
+  status: 'Active' | 'Inactive';
+  password?: string;
 }
 
 export interface DeveloperFormData {
   name: string;
   email: string;
-  phone?: string;
-  skills: string[];
   hourlyRate: number;
-  experience: number;
+  status: 'Active' | 'Inactive';
+  password?: string;
 }
 
 export interface ProjectFormData {
   name: string;
   description: string;
-  clientId: string;
-  developerIds: string[];
-  startDate: Date;
-  endDate: Date;
-  budget: number;
+  client: string;
+  developers: string[];
+  status: 'Planning' | 'Active' | 'On Hold' | 'Completed' | 'Cancelled';
+  startDate: string;
+  endDate: string;
+  estimatedHours: number;
+  hourlyRate: number;
+  billingType: 'Hourly' | 'Fixed';
+}
+
+export interface TaskFormData {
+  title: string;
+  description: string;
+  project: string;
+  assignedTo: string[];
+  status: 'Todo' | 'In Progress' | 'Review' | 'Completed' | 'Blocked';
+  priority: 'Low' | 'Medium' | 'High' | 'Urgent';
+  estimatedHours: number;
+  startDate: string;
+  dueDate: string;
 }
 
 export interface HoursLogFormData {
-  projectId: string;
-  developerId: string;
-  date: Date;
+  project: string;
+  task?: string;
+  client: string;
+  developer: string;
+  date: string;
   hours: number;
   description: string;
-  tasks: string[];
 }
 
 export interface ReportFormData {
@@ -199,3 +231,4 @@ export const extractValidationErrors = (error: yup.ValidationError): ValidationE
   
   return errors;
 };
+

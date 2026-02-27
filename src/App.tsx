@@ -10,7 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Clients from './pages/Clients';
 import ClientDetails from './pages/ClientDetails';
 import Developers from './pages/Developers';
-import Projects from './pages/Projects';
+import Projects from './pages/ProjectsWithTasks';
 import Reports from './pages/Reports';
 import ToastContainer from './components/common/ToastContainer';
 import './index.css';

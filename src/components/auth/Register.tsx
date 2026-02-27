@@ -1,14 +1,11 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { setCredentials } from '../../store/slices/authSlice';
 import { authService } from '../../services/authService';
 import { registerSchema } from '../../validation';
 import { Button, FormInput } from '../common';
 import { useForm } from '../../hooks/useForm';
 
 const Register: React.FC = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const {
@@ -27,14 +24,10 @@ const Register: React.FC = () => {
     validationSchema: registerSchema,
     onSubmit: async (formData) => {
       try {
-        const response = await authService.register(formData);
-        
-        dispatch(setCredentials({
-          token: response.token,
-          accessToken: response.token
-        }));
-        
-        navigate('/dashboard');
+        const response = await authService.register(formData);        
+        if (response) {
+          navigate('/login');
+        }
       } catch (error: any) {
         console.error('Registration error:', error);
         throw error; // Re-throw to let useForm handle isSubmitting state

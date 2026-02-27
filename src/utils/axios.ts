@@ -25,7 +25,6 @@ export const setupAxios = (store: Store) => {
   ];
 
   Axios.interceptors.request.use((request: InternalAxiosRequestConfig) => {
-    console.log("API_URL???", request);
     const storeData = store.getState();
 
     const authToken = storeData.auth.token;
