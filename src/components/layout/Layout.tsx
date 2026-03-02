@@ -26,6 +26,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { path: '/clients', label: 'Clients', roles: [0] }, // 0: BA
     { path: '/developers', label: 'Developers', roles: [0, 1] }, // 0: BA, 1: Client
     { path: '/projects', label: 'Projects', roles: [0, 1, 2] }, // All roles
+    { path: '/analytics', label: 'Analytics', roles: [0, 1] }, // BA and Client only
     { path: '/reports', label: 'Reports', roles: [0, 1, 2] }, // All roles
   ];
 
@@ -99,7 +100,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     {item.path === '/clients' && '👥'}
                     {item.path === '/developers' && '👨‍💻'}
                     {item.path === '/projects' && '📁'}
-                    {item.path === '/reports' && '📈'}
+                    {item.path === '/analytics' && '📈'}
+                    {item.path === '/reports' && '📋'}
                   </span>
                   {item.label}
                 </div>

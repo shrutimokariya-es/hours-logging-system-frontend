@@ -12,6 +12,8 @@ import ClientDetails from './pages/ClientDetails';
 import Developers from './pages/Developers';
 import Projects from './pages/ProjectsWithTasks';
 import Reports from './pages/Reports';
+import Analytics from './pages/Analytics';
+import MyHourLogs from './pages/MyHourLogs';
 import ToastContainer from './components/common/ToastContainer';
 import './index.css';
 
@@ -95,6 +97,26 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <Reports />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/analytics"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <Analytics />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/my-hour-logs"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <MyHourLogs />
                       </Layout>
                     </ProtectedRoute>
                   }

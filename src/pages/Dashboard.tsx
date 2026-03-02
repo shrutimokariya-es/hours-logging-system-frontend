@@ -221,10 +221,13 @@ const Dashboard: React.FC = () => {
                 <p className="text-sm text-gray-500">Recent 20 activities</p>
               </div>
             </div>
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
+            <button
+              onClick={() => navigate('/my-hour-logs')}
+              className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium shadow-md hover:shadow-lg transform hover:scale-105"
+            >
               <Activity size={16} />
-              <span>{recentActivities.length} entries</span>
-            </div>
+              <span>View All Logs</span>
+            </button>
           </div>
         </div>
         <div className="p-6">
