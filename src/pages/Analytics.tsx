@@ -23,7 +23,7 @@ const Analytics: React.FC = () => {
     end: new Date().toISOString().split('T')[0]
   });
 
-  const fetchInsights = useCallback(async () => {
+  const fetchInsights = useCallback(async () => { 
     setLoading(true);
     try {
       const data = await analyticsService.getPredictiveInsights(dateRange.start, dateRange.end);
